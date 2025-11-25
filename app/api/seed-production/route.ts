@@ -4,37 +4,49 @@ import bcrypt from "bcryptjs"
 
 export async function POST() {
     try {
+        console.log('🔄 Starting clean database setup...')
+
+        // Clean ALL existing data first
+        await prisma.transaction.deleteMany()
+        await prisma.clientPayment.deleteMany()
+        await prisma.supplierPayment.deleteMany()
+        await prisma.orderItem.deleteMany()
+        await prisma.supplierOrderItem.deleteMany()
+        await prisma.clientOrder.deleteMany()
+        await prisma.supplierOrder.deleteMany()
+        await prisma.client.deleteMany()
+        await prisma.supplier.deleteMany()
+        await prisma.achat.deleteMany()
+        await prisma.charge.deleteMany()
+        await prisma.chargeCategory.deleteMany()
+        await prisma.caisse.deleteMany()
+        
+        console.log('🧹 Cleaned all data')
+
         // Check if admin already exists
         const existingAdmin = await prisma.user.findUnique({
             where: { email: "admin@saidapp.com" }
         })
 
-        if (existingAdmin) {
-            return NextResponse.json({
-                success: false,
-                message: "Admin user already exists",
-                user: {
-                    email: existingAdmin.email,
-                    name: existingAdmin.name
+        let user = existingAdmin
+        
+        if (!existingAdmin) {
+            // Create admin user
+            const hashedPassword = await bcrypt.hash('admin123', 10)
+            user = await prisma.user.create({
+                data: {
+                    email: 'admin@saidapp.com',
+                    name: 'Admin Said',
+                    password: hashedPassword,
+                    role: 'admin'
                 }
-            }, { status: 200 })
+            })
+            console.log('✅ Created admin user')
+        } else {
+            console.log('✅ Admin user already exists')
         }
 
-        // Create admin user
-        const hashedPassword = await bcrypt.hash('admin123', 10)
-
-        const user = await prisma.user.create({
-            data: {
-                email: 'admin@saidapp.com',
-                name: 'Admin Said',
-                password: hashedPassword,
-                role: 'admin'
-            }
-        })
-
-        console.log('✅ Created admin user:', user.email)
-
-        // Create default caisses
+        // Create default caisses with 0 balance
         const caisseMagasin = await prisma.caisse.create({
             data: {
                 name: 'Caisse Magasin',
@@ -57,9 +69,9 @@ export async function POST() {
             data: {
                 name: 'Caisse Dépôt',
                 type: 'DEPOT',
-                balance: 5000,
-                fixedAmount: 5000,
-                description: 'Caisse de dépôt avec montant fixe'
+                balance: 0,
+                fixedAmount: 0,
+                description: 'Caisse de dépôt'
             }
         })
 
@@ -100,21 +112,22 @@ export async function POST() {
 
         return NextResponse.json({
             success: true,
-            message: "Production database seeded successfully!",
+            message: "Database reset to clean state! All balances are 0.",
             data: {
                 adminUser: {
-                    email: user.email,
-                    name: user.name,
-                    role: user.role
+                    email: user!.email,
+                    name: user!.name,
+                    role: user!.role
                 },
-                caisses: 3,
-                categories: 5,
+                caisses: "3 caisses created with 0 balance",
+                categories: "5 charge categories created",
+                allData: "All transactions, orders, clients, suppliers deleted",
                 credentials: {
                     email: "admin@saidapp.com",
                     password: "admin123"
                 }
             }
-        }, { status: 201 })
+        }, { status: 200 })
 
     } catch (error: any) {
         console.error("Seeding error:", error)
