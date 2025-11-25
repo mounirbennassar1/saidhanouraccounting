@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:reset-neon": "tsx reset-neon-db.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

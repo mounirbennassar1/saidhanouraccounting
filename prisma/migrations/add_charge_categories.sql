@@ -40,3 +40,4 @@ UPDATE "Charge" SET "category" = 'Entretien & Réparations' WHERE "category" = '
 DROP TYPE IF EXISTS "ChargeCategory" CASCADE;
 
 
+

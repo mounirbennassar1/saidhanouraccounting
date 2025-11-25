@@ -202,3 +202,4 @@ Pour toute question ou problème avec la fonctionnalité de rapports, vérifiez 
 - Les dates sont affichées au format français (jour/mois/année)
 - L'API nécessite une authentification NextAuth valide
 
+

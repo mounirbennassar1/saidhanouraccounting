@@ -65,3 +65,4 @@ UPDATE "Caisse" SET balance = 0, "fixedAmount" = 0;
 -- Keep admin user and categories
 ```
 
+
