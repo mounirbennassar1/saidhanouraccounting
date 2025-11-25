@@ -4,9 +4,9 @@ import bcrypt from "bcryptjs"
 
 export async function POST() {
     try {
-        console.log('🔄 Starting clean database setup...')
+        console.log('🔄 Starting database cleanup - keeping users...')
 
-        // Clean ALL existing data first
+        // Delete ONLY transactional data, keep users
         await prisma.transaction.deleteMany()
         await prisma.clientPayment.deleteMany()
         await prisma.supplierPayment.deleteMany()
@@ -18,114 +18,61 @@ export async function POST() {
         await prisma.supplier.deleteMany()
         await prisma.achat.deleteMany()
         await prisma.charge.deleteMany()
-        await prisma.chargeCategory.deleteMany()
-        await prisma.caisse.deleteMany()
         
-        console.log('🧹 Cleaned all data')
+        console.log('🧹 Deleted all transactional data')
 
-        // Check if admin already exists
-        const existingAdmin = await prisma.user.findUnique({
+        // Reset ALL caisse balances to 0
+        await prisma.caisse.updateMany({
+            data: {
+                balance: 0
+            }
+        })
+        
+        console.log('✅ Reset all caisse balances to 0')
+
+        // Get admin user (should exist)
+        const user = await prisma.user.findUnique({
             where: { email: "admin@saidapp.com" }
         })
 
-        let user = existingAdmin
-        
-        if (!existingAdmin) {
-            // Create admin user
-            const hashedPassword = await bcrypt.hash('admin123', 10)
-            user = await prisma.user.create({
-                data: {
-                    email: 'admin@saidapp.com',
-                    name: 'Admin Said',
-                    password: hashedPassword,
-                    role: 'admin'
-                }
-            })
-            console.log('✅ Created admin user')
-        } else {
-            console.log('✅ Admin user already exists')
+        if (!user) {
+            return NextResponse.json({
+                success: false,
+                message: "Admin user not found! Please run initial seed first."
+            }, { status: 404 })
         }
 
-        // Create default caisses with 0 balance
-        const caisseMagasin = await prisma.caisse.create({
-            data: {
-                name: 'Caisse Magasin',
-                type: 'MAGASIN',
-                balance: 0,
-                description: 'Caisse principale du magasin'
-            }
-        })
+        // Count what's left
+        const caisseCount = await prisma.caisse.count()
+        const categoryCount = await prisma.chargeCategory.count()
+        const transactionCount = await prisma.transaction.count()
+        const clientCount = await prisma.client.count()
+        const supplierCount = await prisma.supplier.count()
 
-        const caisseEvenements = await prisma.caisse.create({
-            data: {
-                name: 'Caisse Événements',
-                type: 'EVENEMENTS',
-                balance: 0,
-                description: 'Caisse dédiée aux événements'
-            }
-        })
-
-        const caisseDepot = await prisma.caisse.create({
-            data: {
-                name: 'Caisse Dépôt',
-                type: 'DEPOT',
-                balance: 0,
-                fixedAmount: 0,
-                description: 'Caisse de dépôt'
-            }
-        })
-
-        console.log('✅ Created 3 caisses')
-
-        // Create default charge categories
-        await prisma.chargeCategory.createMany({
-            data: [
-                {
-                    name: 'Loyer de Dépôt',
-                    description: 'Frais de location du dépôt mensuel',
-                    color: '#f59e0b'
-                },
-                {
-                    name: 'Salaires Non Déclarés',
-                    description: 'Paiements de salaires non déclarés',
-                    color: '#ec4899'
-                },
-                {
-                    name: 'Frais Bancaires',
-                    description: 'Frais de retrait, virement et transactions',
-                    color: '#8b5cf6'
-                },
-                {
-                    name: 'Primes & Avances',
-                    description: 'Primes, avances sur salaire et extras',
-                    color: '#06b6d4'
-                },
-                {
-                    name: 'Entretien & Réparations',
-                    description: 'Maintenance, réparations et entretien',
-                    color: '#10b981'
-                }
-            ]
-        })
-
-        console.log('✅ Created charge categories')
+        console.log(`✅ Caisses: ${caisseCount} (all with 0 balance)`)
+        console.log(`✅ Categories: ${categoryCount}`)
+        console.log(`✅ Transactions: ${transactionCount}`)
+        console.log(`✅ Clients: ${clientCount}`)
+        console.log(`✅ Suppliers: ${supplierCount}`)
 
         return NextResponse.json({
             success: true,
-            message: "Database reset to clean state! All balances are 0.",
+            message: "✅ Database reset complete! All balances set to 0, all transactional data deleted.",
             data: {
                 adminUser: {
-                    email: user!.email,
-                    name: user!.name,
-                    role: user!.role
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                    status: "KEPT"
                 },
-                caisses: "3 caisses created with 0 balance",
-                categories: "5 charge categories created",
-                allData: "All transactions, orders, clients, suppliers deleted",
-                credentials: {
-                    email: "admin@saidapp.com",
-                    password: "admin123"
-                }
+                summary: {
+                    caisses: `${caisseCount} caisses - all balances reset to 0 DH`,
+                    categories: `${categoryCount} charge categories - kept`,
+                    transactions: `${transactionCount} transactions - all deleted`,
+                    clients: `${clientCount} clients - all deleted`,
+                    suppliers: `${supplierCount} suppliers - all deleted`
+                },
+                note: "Admin user and structure preserved. All data cleared."
             }
         }, { status: 200 })
 
