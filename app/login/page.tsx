@@ -32,16 +32,28 @@ function LoginForm() {
                 email,
                 password,
                 redirect: false,
+                callbackUrl: callbackUrl,
             })
 
+            console.log('Login result:', result)
+
             if (result?.error) {
+                console.error('Login error:', result.error)
                 setError('Email ou mot de passe incorrect')
                 setLoading(false)
             } else if (result?.ok) {
-                // Force a full page reload to ensure session is loaded
-                window.location.replace(callbackUrl)
+                console.log('Login successful, redirecting to:', callbackUrl)
+                // Wait a moment for cookie to be set, then redirect
+                setTimeout(() => {
+                    window.location.href = callbackUrl
+                }, 500)
+            } else {
+                console.error('Unexpected login result:', result)
+                setError('Erreur de connexion')
+                setLoading(false)
             }
         } catch (err) {
+            console.error('Login exception:', err)
             setError('Une erreur est survenue')
             setLoading(false)
         }

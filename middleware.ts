@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { getToken } from "next-auth/jwt"
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
@@ -13,22 +14,29 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next()
     }
 
-    // Check for session cookie
-    const sessionToken = request.cookies.get(
-        process.env.NODE_ENV === 'production' 
-            ? '__Secure-next-auth.session-token'
-            : 'next-auth.session-token'
-    )
+    // Check authentication using NextAuth's getToken
+    try {
+        const token = await getToken({ 
+            req: request,
+            secret: process.env.NEXTAUTH_SECRET
+        })
 
-    // If no session cookie, redirect to login
-    if (!sessionToken) {
+        // If not authenticated, redirect to login
+        if (!token) {
+            const loginUrl = new URL("/login", request.url)
+            loginUrl.searchParams.set("callbackUrl", pathname)
+            return NextResponse.redirect(loginUrl)
+        }
+
+        // Allow authenticated requests
+        return NextResponse.next()
+    } catch (error) {
+        // If token check fails, redirect to login
+        console.error('Middleware auth check error:', error)
         const loginUrl = new URL("/login", request.url)
         loginUrl.searchParams.set("callbackUrl", pathname)
         return NextResponse.redirect(loginUrl)
     }
-
-    // Allow authenticated requests
-    return NextResponse.next()
 }
 
 export const config = {
