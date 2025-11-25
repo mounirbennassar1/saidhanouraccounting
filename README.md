@@ -1,36 +1,163 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Said App - Gestion de Caisse et Dépenses
 
-## Getting Started
+Une application moderne et élégante de gestion de caisse, achats et charges construite avec Next.js, Prisma, PostgreSQL et NextAuth.
 
-First, run the development server:
+## 🚀 Fonctionnalités
+
+### Gestion des Caisses
+- **Caisse Magasin** - Revenue tracking pour le magasin
+- **Caisse Événements** - Gestion des revenus d'événements  
+- **Caisse Dépôt** - Caisse avec montant fixe
+
+### Gestion des Achats
+- Achats Magasin
+- Achats Société
+- Achats Événement
+
+### Gestion des Charges
+- Loyer de Dépôt
+- Salaires Non Déclarés
+- Extract Fees
+- Extra Salaire
+- Entretien
+
+### Tableaux de Bord
+- Vue d'ensemble des finances
+- Graphiques interactifs (Pie charts, Bar charts)
+- Statistiques en temps réel
+- Historique des transactions
+
+## 🛠️ Technologies
+
+- **Frontend**: Next.js 16, React 19, TypeScript
+- **Styling**: Tailwind CSS v4, CSS personnalisé avec glassmorphism
+- **Base de données**: PostgreSQL avec Prisma ORM
+- **Authentification**: NextAuth v5
+- **Charts**: Recharts
+- **Icons**: Lucide React
+
+## 📦 Installation
+
+1. **Cloner le projet** (déjà fait)
+
+2. **Installer les dépendances**
+```bash
+npm install --legacy-peer-deps
+```
+
+3. **Configurer la base de données**
+
+Créez un fichier `.env` à la racine du projet:
+
+```env
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/saidapp?schema=public"
+
+# NextAuth
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key-change-this-in-production"
+
+# App
+NODE_ENV="development"
+```
+
+**Important**: Remplacez `user`, `password`, et les autres valeurs par vos propres informations PostgreSQL.
+
+4. **Générer le client Prisma**
+```bash
+npm run db:generate
+```
+
+5. **Créer la base de données**
+```bash
+npm run db:push
+```
+
+6. **Peupler la base de données avec des données de test**
+```bash
+npm run db:seed
+```
+
+Cela créera:
+- Un utilisateur admin (email: `admin@saidapp.com`, password: `admin123`)
+- 3 caisses (Magasin, Événements, Dépôt)
+- Des achats et charges d'exemple
+- Des transactions initiales
+
+## 🚀 Lancement
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📝 Connexion
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Après avoir exécuté le seed:
+- **Email**: admin@saidapp.com
+- **Password**: admin123
 
-## Learn More
+## 🎨 Design
 
-To learn more about Next.js, take a look at the following resources:
+L'application utilise un design moderne avec:
+- **Palette de couleurs vibrante** avec gradients
+- **Glassmorphism** pour les effets de verre
+- **Animations fluides** pour une meilleure UX
+- **Design responsive** pour mobile et desktop
+- **Dark mode** par défaut avec une esthétique premium
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📊 Structure du Projet
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+saidhannour/
+├── app/
+│   ├── api/              # API Routes
+│   │   ├── auth/         # NextAuth endpoints
+│   │   ├── caisses/      # Caisse management
+│   │   ├── achats/       # Purchase management
+│   │   ├── charges/      # Expense management
+│   │   └── dashboard/    # Dashboard stats
+│   ├── globals.css       # Styles globaux
+│   ├── layout.tsx        # Layout principal
+│   └── page.tsx          # Page d'accueil
+├── components/
+│   ├── Dashboard.tsx     # Composant dashboard
+│   ├── Forms.tsx         # Formulaires de création
+│   ├── Modal.tsx         # Composant modal réutilisable
+│   ├── Navigation.tsx    # Navigation principale
+│   └── Tables.tsx        # Tables de données
+├── lib/
+│   ├── auth.ts          # Configuration NextAuth
+│   └── prisma.ts        # Client Prisma
+├── prisma/
+│   ├── schema.prisma    # Schéma de base de données
+│   └── seed.ts          # Script de peuplement
+└── types/
+    └── next-auth.d.ts   # Types TypeScript
 
-## Deploy on Vercel
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔐 Sécurité
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Mots de passe hashés avec bcrypt
+- Sessions JWT sécurisées
+- Variables d'environnement pour les secrets
+- Validation des données côté serveur
+
+## 📈 Prochaines Étapes
+
+- [ ] Ajouter l'édition et la suppression des entrées
+- [ ] Implémenter l'export PDF/Excel
+- [ ] Ajouter des filtres et recherche avancée
+- [ ] Créer des rapports mensuels/annuels
+- [ ] Ajouter des notifications
+- [ ] Implémenter la gestion multi-utilisateurs
+
+## 🤝 Support
+
+Pour toute question ou problème, contactez l'équipe de développement.
+
+## 📄 License
+
+Propriétaire - Said App © 2025
