@@ -115,3 +115,87 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }
+
+export async function PATCH(request: NextRequest) {
+    try {
+        const session = await auth()
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const body = await request.json()
+        const { id, description, amount, category, reference, notes } = body
+
+        if (!id) {
+            return NextResponse.json({ error: "ID is required" }, { status: 400 })
+        }
+
+        const achat = await prisma.achat.update({
+            where: { id },
+            data: {
+                description,
+                amount,
+                category,
+                reference,
+                notes
+            }
+        })
+
+        return NextResponse.json(achat)
+    } catch (error) {
+        console.error("Error updating achat:", error)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const session = await auth()
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const { searchParams } = new URL(request.url)
+        const id = searchParams.get('id')
+
+        if (!id) {
+            return NextResponse.json({ error: "ID is required" }, { status: 400 })
+        }
+
+        // Get achat with transactions to update caisse balance
+        const achat = await prisma.achat.findUnique({
+            where: { id },
+            include: {
+                transactions: true
+            }
+        })
+
+        if (!achat) {
+            return NextResponse.json({ error: "Achat not found" }, { status: 404 })
+        }
+
+        // Restore caisse balances
+        for (const transaction of achat.transactions) {
+            if (transaction.caisseId) {
+                await prisma.caisse.update({
+                    where: { id: transaction.caisseId },
+                    data: {
+                        balance: {
+                            increment: transaction.amount
+                        }
+                    }
+                })
+            }
+        }
+
+        // Delete achat (transactions will be deleted automatically due to cascade)
+        await prisma.achat.delete({
+            where: { id }
+        })
+
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        console.error("Error deleting achat:", error)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}

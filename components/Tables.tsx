@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { Trash2, Edit, MoreHorizontal, ArrowRight } from 'lucide-react'
+import { Trash2, Edit, X } from 'lucide-react'
+import Modal from './Modal'
 
 interface Transaction {
     id: string
@@ -49,6 +50,9 @@ interface Charge {
 export function CaissesTable() {
     const [caisses, setCaisses] = useState<Caisse[]>([])
     const [loading, setLoading] = useState(true)
+    const [showEditModal, setShowEditModal] = useState(false)
+    const [editingCaisse, setEditingCaisse] = useState<Caisse | null>(null)
+    const [submitting, setSubmitting] = useState(false)
 
     useEffect(() => {
         fetchCaisses()
@@ -68,65 +72,197 @@ export function CaissesTable() {
         }
     }
 
+    const handleEdit = (caisse: Caisse) => {
+        setEditingCaisse(caisse)
+        setShowEditModal(true)
+    }
+
+    const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        if (!editingCaisse) return
+
+        setSubmitting(true)
+        const formData = new FormData(e.currentTarget)
+
+        try {
+            const response = await fetch('/api/caisses', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: editingCaisse.id,
+                    name: formData.get('name'),
+                    type: formData.get('type'),
+                    fixedAmount: formData.get('fixedAmount') ? parseFloat(formData.get('fixedAmount') as string) : null,
+                    description: formData.get('description')
+                })
+            })
+
+            if (response.ok) {
+                setShowEditModal(false)
+                setEditingCaisse(null)
+                fetchCaisses()
+            }
+        } catch (error) {
+            console.error('Error updating caisse:', error)
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer cette caisse?')) return
+
+        try {
+            const response = await fetch(`/api/caisses?id=${id}`, {
+                method: 'DELETE'
+            })
+
+            if (response.ok) {
+                fetchCaisses()
+            }
+        } catch (error) {
+            console.error('Error deleting caisse:', error)
+        }
+    }
+
     if (loading) {
         return <div className="skeleton h-64 w-full rounded-2xl"></div>
     }
 
     return (
-        <div className="card overflow-hidden border-0">
-            <div className="overflow-x-auto">
-                <table className="w-full">
-                    <thead>
-                        <tr>
-                            <th className="table-header text-left">Nom de la Caisse</th>
-                            <th className="table-header text-left">Type</th>
-                            <th className="table-header text-right">Solde Actuel</th>
-                            <th className="table-header text-right">Montant Fixe</th>
-                            <th className="table-header text-left">Description</th>
-                            <th className="table-header text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {caisses.map((caisse) => (
-                            <tr key={caisse.id} className="table-row group">
-                                <td className="table-cell font-medium text-white">{caisse.name}</td>
-                                <td className="table-cell">
-                                    <span className={`badge ${caisse.type === 'MAGASIN' ? 'badge-success' :
-                                            caisse.type === 'EVENEMENTS' ? 'badge-info' :
-                                                'badge-warning'
-                                        }`}>
-                                        {caisse.type}
-                                    </span>
-                                </td>
-                                <td className="table-cell text-right font-bold text-white tracking-tight">
-                                    {caisse.balance.toLocaleString()} <span className="text-slate-500 text-xs font-normal">DH</span>
-                                </td>
-                                <td className="table-cell text-right text-slate-400">
-                                    {caisse.fixedAmount ? `${caisse.fixedAmount.toLocaleString()} DH` : '-'}
-                                </td>
-                                <td className="table-cell text-slate-400 max-w-xs truncate">{caisse.description || '-'}</td>
-                                <td className="table-cell">
-                                    <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white">
-                                            <Edit className="w-4 h-4" />
-                                        </button>
-                                        <button className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors">
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </td>
+        <>
+            <div className="card overflow-hidden border-0">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead>
+                            <tr>
+                                <th className="table-header text-left">Nom de la Caisse</th>
+                                <th className="table-header text-left">Type</th>
+                                <th className="table-header text-right">Solde Actuel</th>
+                                <th className="table-header text-right">Montant Fixe</th>
+                                <th className="table-header text-left">Description</th>
+                                <th className="table-header text-center">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {caisses.map((caisse) => (
+                                <tr key={caisse.id} className="table-row group">
+                                    <td className="table-cell font-medium text-white">{caisse.name}</td>
+                                    <td className="table-cell">
+                                        <span className={`badge ${caisse.type === 'MAGASIN' ? 'badge-success' :
+                                                caisse.type === 'EVENEMENTS' ? 'badge-info' :
+                                                    'badge-warning'
+                                            }`}>
+                                            {caisse.type}
+                                        </span>
+                                    </td>
+                                    <td className="table-cell text-right font-bold text-white tracking-tight">
+                                        {caisse.balance.toLocaleString()} <span className="text-slate-500 text-xs font-normal">DH</span>
+                                    </td>
+                                    <td className="table-cell text-right text-slate-400">
+                                        {caisse.fixedAmount ? `${caisse.fixedAmount.toLocaleString()} DH` : '-'}
+                                    </td>
+                                    <td className="table-cell text-slate-400 max-w-xs truncate">{caisse.description || '-'}</td>
+                                    <td className="table-cell">
+                                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button 
+                                                onClick={() => handleEdit(caisse)}
+                                                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDelete(caisse.id)}
+                                                className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+
+            {/* Edit Modal */}
+            <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Modifier la Caisse">
+                {editingCaisse && (
+                    <form onSubmit={handleUpdate} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Nom de la Caisse</label>
+                            <input
+                                type="text"
+                                name="name"
+                                defaultValue={editingCaisse.name}
+                                required
+                                className="input"
+                                placeholder="Ex: Caisse Principale"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Type</label>
+                            <select name="type" defaultValue={editingCaisse.type} required className="input">
+                                <option value="MAGASIN">Magasin</option>
+                                <option value="EVENEMENTS">Événements</option>
+                                <option value="DEPOT">Dépôt</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Montant Fixe (optionnel)</label>
+                            <input
+                                type="number"
+                                name="fixedAmount"
+                                defaultValue={editingCaisse.fixedAmount || ''}
+                                step="0.01"
+                                className="input"
+                                placeholder="Ex: 5000"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Description</label>
+                            <textarea
+                                name="description"
+                                defaultValue={editingCaisse.description || ''}
+                                className="input min-h-[80px]"
+                                placeholder="Description de la caisse..."
+                            />
+                        </div>
+
+                        <div className="flex gap-3 pt-4">
+                            <button
+                                type="button"
+                                onClick={() => setShowEditModal(false)}
+                                className="btn-secondary flex-1"
+                                disabled={submitting}
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                type="submit"
+                                className="btn-primary flex-1"
+                                disabled={submitting}
+                            >
+                                {submitting ? 'Modification...' : 'Modifier'}
+                            </button>
+                        </div>
+                    </form>
+                )}
+            </Modal>
+        </>
     )
 }
 
 export function AchatsTable() {
     const [achats, setAchats] = useState<Achat[]>([])
     const [loading, setLoading] = useState(true)
+    const [showEditModal, setShowEditModal] = useState(false)
+    const [editingAchat, setEditingAchat] = useState<Achat | null>(null)
+    const [submitting, setSubmitting] = useState(false)
 
     useEffect(() => {
         fetchAchats()
@@ -146,69 +282,211 @@ export function AchatsTable() {
         }
     }
 
+    const handleEdit = (achat: Achat) => {
+        setEditingAchat(achat)
+        setShowEditModal(true)
+    }
+
+    const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        if (!editingAchat) return
+
+        setSubmitting(true)
+        const formData = new FormData(e.currentTarget)
+
+        try {
+            const response = await fetch('/api/achats', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: editingAchat.id,
+                    description: formData.get('description'),
+                    amount: parseFloat(formData.get('amount') as string),
+                    category: formData.get('category'),
+                    reference: formData.get('reference'),
+                    notes: formData.get('notes')
+                })
+            })
+
+            if (response.ok) {
+                setShowEditModal(false)
+                setEditingAchat(null)
+                fetchAchats()
+            }
+        } catch (error) {
+            console.error('Error updating achat:', error)
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer cet achat?')) return
+
+        try {
+            const response = await fetch(`/api/achats?id=${id}`, {
+                method: 'DELETE'
+            })
+
+            if (response.ok) {
+                fetchAchats()
+            }
+        } catch (error) {
+            console.error('Error deleting achat:', error)
+        }
+    }
+
     if (loading) {
         return <div className="skeleton h-64 w-full rounded-2xl"></div>
     }
 
     return (
-        <div className="card overflow-hidden border-0">
-            <div className="overflow-x-auto">
-                <table className="w-full">
-                    <thead>
-                        <tr>
-                            <th className="table-header text-left">Date</th>
-                            <th className="table-header text-left">Description</th>
-                            <th className="table-header text-left">Catégorie</th>
-                            <th className="table-header text-right">Montant</th>
-                            <th className="table-header text-left">Référence</th>
-                            <th className="table-header text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {achats.map((achat) => (
-                            <tr key={achat.id} className="table-row group">
-                                <td className="table-cell text-slate-400 text-sm">
-                                    {format(new Date(achat.date), 'dd MMM yyyy')}
-                                </td>
-                                <td className="table-cell font-medium text-white">{achat.description}</td>
-                                <td className="table-cell">
-                                    <span className="badge badge-info">{achat.category}</span>
-                                </td>
-                                <td className="table-cell text-right font-bold text-rose-400 tracking-tight">
-                                    -{achat.amount.toLocaleString()} <span className="text-rose-400/50 text-xs font-normal">DH</span>
-                                </td>
-                                <td className="table-cell text-slate-400 font-mono text-xs">{achat.reference || '-'}</td>
-                                <td className="table-cell">
-                                    <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white">
-                                            <Edit className="w-4 h-4" />
-                                        </button>
-                                        <button className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors">
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </td>
+        <>
+            <div className="card overflow-hidden border-0">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead>
+                            <tr>
+                                <th className="table-header text-left">Date</th>
+                                <th className="table-header text-left">Description</th>
+                                <th className="table-header text-left">Catégorie</th>
+                                <th className="table-header text-right">Montant</th>
+                                <th className="table-header text-left">Référence</th>
+                                <th className="table-header text-center">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {achats.map((achat) => (
+                                <tr key={achat.id} className="table-row group">
+                                    <td className="table-cell text-slate-400 text-sm">
+                                        {format(new Date(achat.date), 'dd MMM yyyy')}
+                                    </td>
+                                    <td className="table-cell font-medium text-white">{achat.description}</td>
+                                    <td className="table-cell">
+                                        <span className="badge badge-info">{achat.category}</span>
+                                    </td>
+                                    <td className="table-cell text-right font-bold text-rose-400 tracking-tight">
+                                        -{achat.amount.toLocaleString()} <span className="text-rose-400/50 text-xs font-normal">DH</span>
+                                    </td>
+                                    <td className="table-cell text-slate-400 font-mono text-xs">{achat.reference || '-'}</td>
+                                    <td className="table-cell">
+                                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button 
+                                                onClick={() => handleEdit(achat)}
+                                                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDelete(achat.id)}
+                                                className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+
+            {/* Edit Modal */}
+            <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Modifier l'Achat">
+                {editingAchat && (
+                    <form onSubmit={handleUpdate} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Description</label>
+                            <input
+                                type="text"
+                                name="description"
+                                defaultValue={editingAchat.description}
+                                required
+                                className="input"
+                                placeholder="Description de l'achat"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Montant (DH)</label>
+                            <input
+                                type="number"
+                                name="amount"
+                                defaultValue={editingAchat.amount}
+                                required
+                                step="0.01"
+                                min="0"
+                                className="input"
+                                placeholder="0.00"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Catégorie</label>
+                            <select name="category" defaultValue={editingAchat.category} required className="input">
+                                <option value="MAGASIN">Magasin</option>
+                                <option value="SOCIETE">Société</option>
+                                <option value="EVENEMENT">Événement</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Référence</label>
+                            <input
+                                type="text"
+                                name="reference"
+                                defaultValue={editingAchat.reference || ''}
+                                className="input"
+                                placeholder="Référence de l'achat"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Notes</label>
+                            <textarea
+                                name="notes"
+                                defaultValue={editingAchat.notes || ''}
+                                className="input min-h-[80px]"
+                                placeholder="Notes additionnelles..."
+                            />
+                        </div>
+
+                        <div className="flex gap-3 pt-4">
+                            <button
+                                type="button"
+                                onClick={() => setShowEditModal(false)}
+                                className="btn-secondary flex-1"
+                                disabled={submitting}
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                type="submit"
+                                className="btn-primary flex-1"
+                                disabled={submitting}
+                            >
+                                {submitting ? 'Modification...' : 'Modifier'}
+                            </button>
+                        </div>
+                    </form>
+                )}
+            </Modal>
+        </>
     )
 }
 
 export function ChargesTable() {
     const [charges, setCharges] = useState<Charge[]>([])
     const [loading, setLoading] = useState(true)
-    const [showPayModal, setShowPayModal] = useState(false)
-    const [selectedCharge, setSelectedCharge] = useState<Charge | null>(null)
-    const [caisses, setCaisses] = useState<Caisse[]>([])
-    const [paying, setPaying] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+    const [showEditModal, setShowEditModal] = useState(false)
+    const [editingCharge, setEditingCharge] = useState<Charge | null>(null)
+    const [submitting, setSubmitting] = useState(false)
+    const [categories, setCategories] = useState<string[]>([])
 
     useEffect(() => {
         fetchCharges()
-        fetchCaisses()
+        fetchCategories()
     }, [])
 
     const fetchCharges = async () => {
@@ -225,74 +503,70 @@ export function ChargesTable() {
         }
     }
 
-    const fetchCaisses = async () => {
+    const fetchCategories = async () => {
         try {
-            const response = await fetch('/api/caisses')
+            const response = await fetch('/api/charge-categories')
             if (response.ok) {
                 const data = await response.json()
-                setCaisses(data)
+                setCategories(data.map((cat: any) => cat.name))
             }
         } catch (error) {
-            console.error('Error fetching caisses:', error)
+            console.error('Error fetching categories:', error)
         }
     }
 
-    const handlePayCharge = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleEdit = (charge: Charge) => {
+        setEditingCharge(charge)
+        setShowEditModal(true)
+    }
+
+    const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        if (!selectedCharge) return
+        if (!editingCharge) return
 
-        setPaying(true)
-        setError(null)
+        setSubmitting(true)
         const formData = new FormData(e.currentTarget)
-        const caisseId = formData.get('caisseId') as string
 
         try {
             const response = await fetch('/api/charges', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    chargeId: selectedCharge.id,
-                    isPaid: true,
-                    caisseId
+                    id: editingCharge.id,
+                    description: formData.get('description'),
+                    amount: parseFloat(formData.get('amount') as string),
+                    category: formData.get('category'),
+                    reference: formData.get('reference'),
+                    notes: formData.get('notes'),
+                    isPaid: formData.get('isPaid') === 'on'
                 })
             })
 
             if (response.ok) {
-                setShowPayModal(false)
-                setSelectedCharge(null)
+                setShowEditModal(false)
+                setEditingCharge(null)
                 fetchCharges()
-                fetchCaisses()
-            } else {
-                const data = await response.json()
-                setError(data.error || 'Erreur lors du paiement de la charge')
             }
         } catch (error) {
-            console.error('Error paying charge:', error)
-            setError('Erreur de connexion au serveur')
+            console.error('Error updating charge:', error)
         } finally {
-            setPaying(false)
+            setSubmitting(false)
         }
     }
 
-    const handleUnpayCharge = async (chargeId: string) => {
-        if (!confirm('Êtes-vous sûr de vouloir marquer cette charge comme impayée ?')) return
+    const handleDelete = async (id: string) => {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer cette charge?')) return
 
         try {
-            const response = await fetch('/api/charges', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chargeId,
-                    isPaid: false
-                })
+            const response = await fetch(`/api/charges?id=${id}`, {
+                method: 'DELETE'
             })
 
             if (response.ok) {
                 fetchCharges()
-                fetchCaisses()
             }
         } catch (error) {
-            console.error('Error unpaying charge:', error)
+            console.error('Error deleting charge:', error)
         }
     }
 
@@ -324,49 +598,29 @@ export function ChargesTable() {
                                     </td>
                                     <td className="table-cell font-medium text-white">{charge.description}</td>
                                     <td className="table-cell">
-                                        <span className="badge badge-info text-xs">
-                                            {charge.category.replace(/_/g, ' ')}
-                                        </span>
+                                        <span className="badge badge-warning">{charge.category}</span>
                                     </td>
-                                    <td className="table-cell text-right font-bold text-cyan-400 tracking-tight">
-                                        {charge.amount.toLocaleString()} <span className="text-cyan-400/50 text-xs font-normal">DH</span>
+                                    <td className="table-cell text-right font-bold text-orange-400 tracking-tight">
+                                        -{charge.amount.toLocaleString()} <span className="text-orange-400/50 text-xs font-normal">DH</span>
                                     </td>
                                     <td className="table-cell text-center">
-                                        {charge.isPaid ? (
-                                            <span className="badge badge-success">Payé</span>
-                                        ) : (
-                                            <span className="badge badge-warning">Impayé</span>
-                                        )}
+                                        <span className={`badge ${charge.isPaid ? 'badge-success' : 'badge-error'}`}>
+                                            {charge.isPaid ? 'Payée' : 'Non payée'}
+                                        </span>
                                     </td>
                                     <td className="table-cell text-slate-400 font-mono text-xs">{charge.reference || '-'}</td>
                                     <td className="table-cell">
                                         <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {!charge.isPaid ? (
-                                                <button 
-                                                    onClick={() => {
-                                                        setSelectedCharge(charge)
-                                                        setShowPayModal(true)
-                                                        setError(null)
-                                                    }}
-                                                    className="p-2 hover:bg-emerald-500/10 text-slate-400 hover:text-emerald-400 rounded-lg transition-colors flex items-center gap-1 text-xs"
-                                                    title="Marquer comme payé"
-                                                >
-                                                    <ArrowRight className="w-4 h-4" />
-                                                    Payer
-                                                </button>
-                                            ) : (
-                                                <button 
-                                                    onClick={() => handleUnpayCharge(charge.id)}
-                                                    className="p-2 hover:bg-amber-500/10 text-slate-400 hover:text-amber-400 rounded-lg transition-colors flex items-center gap-1 text-xs"
-                                                    title="Marquer comme impayé"
-                                                >
-                                                    Annuler
-                                                </button>
-                                            )}
-                                            <button className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white">
+                                            <button 
+                                                onClick={() => handleEdit(charge)}
+                                                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+                                            >
                                                 <Edit className="w-4 h-4" />
                                             </button>
-                                            <button className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors">
+                                            <button 
+                                                onClick={() => handleDelete(charge.id)}
+                                                className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                                            >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
@@ -378,68 +632,99 @@ export function ChargesTable() {
                 </div>
             </div>
 
-            {/* Pay Charge Modal */}
-            {showPayModal && selectedCharge && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-md w-full">
-                        <h3 className="text-xl font-bold text-white mb-4">Payer la Charge</h3>
-                        <div className="mb-4 p-4 bg-white/5 rounded-lg">
-                            <p className="text-sm text-slate-400">Description</p>
-                            <p className="text-white font-medium">{selectedCharge.description}</p>
-                            <p className="text-sm text-slate-400 mt-2">Montant</p>
-                            <p className="text-2xl font-bold text-cyan-400">{selectedCharge.amount.toLocaleString()} DH</p>
+            {/* Edit Modal */}
+            <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Modifier la Charge">
+                {editingCharge && (
+                    <form onSubmit={handleUpdate} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Description</label>
+                            <input
+                                type="text"
+                                name="description"
+                                defaultValue={editingCharge.description}
+                                required
+                                className="input"
+                                placeholder="Description de la charge"
+                            />
                         </div>
-                        
-                        <form onSubmit={handlePayCharge} className="space-y-4">
-                            {error && (
-                                <div className="bg-rose-500/10 border border-rose-500/20 rounded-lg p-4 text-rose-400 text-sm">
-                                    {error}
-                                </div>
-                            )}
-                            
-                            <div>
-                                <label className="block text-sm font-medium mb-2 text-slate-300">
-                                    Caisse à débiter <span className="text-rose-400">*</span>
-                                </label>
-                                <select name="caisseId" required className="input">
-                                    <option value="">Sélectionner une caisse</option>
-                                    {caisses.map(caisse => (
-                                        <option 
-                                            key={caisse.id} 
-                                            value={caisse.id}
-                                            disabled={caisse.balance < selectedCharge.amount}
-                                        >
-                                            {caisse.name} ({caisse.balance.toLocaleString()} DH)
-                                            {caisse.balance < selectedCharge.amount && ' - Solde insuffisant'}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
 
-                            <div className="flex gap-3 pt-4">
-                                <button 
-                                    type="submit" 
-                                    disabled={paying}
-                                    className="btn btn-primary bg-emerald-600 hover:bg-emerald-700 flex-1"
-                                >
-                                    {paying ? 'Paiement...' : 'Confirmer le Paiement'}
-                                </button>
-                                <button 
-                                    type="button" 
-                                    onClick={() => {
-                                        setShowPayModal(false)
-                                        setSelectedCharge(null)
-                                        setError(null)
-                                    }}
-                                    className="btn btn-secondary"
-                                >
-                                    Annuler
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Montant (DH)</label>
+                            <input
+                                type="number"
+                                name="amount"
+                                defaultValue={editingCharge.amount}
+                                required
+                                step="0.01"
+                                min="0"
+                                className="input"
+                                placeholder="0.00"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Catégorie</label>
+                            <select name="category" defaultValue={editingCharge.category} required className="input">
+                                {categories.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Référence</label>
+                            <input
+                                type="text"
+                                name="reference"
+                                defaultValue={editingCharge.reference || ''}
+                                className="input"
+                                placeholder="Référence de la charge"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Notes</label>
+                            <textarea
+                                name="notes"
+                                defaultValue={editingCharge.notes || ''}
+                                className="input min-h-[80px]"
+                                placeholder="Notes additionnelles..."
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                name="isPaid"
+                                id="isPaid"
+                                defaultChecked={editingCharge.isPaid}
+                                className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <label htmlFor="isPaid" className="text-sm font-medium">
+                                Charge déjà payée
+                            </label>
+                        </div>
+
+                        <div className="flex gap-3 pt-4">
+                            <button
+                                type="button"
+                                onClick={() => setShowEditModal(false)}
+                                className="btn-secondary flex-1"
+                                disabled={submitting}
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                type="submit"
+                                className="btn-primary flex-1"
+                                disabled={submitting}
+                            >
+                                {submitting ? 'Modification...' : 'Modifier'}
+                            </button>
+                        </div>
+                    </form>
+                )}
+            </Modal>
         </>
     )
 }

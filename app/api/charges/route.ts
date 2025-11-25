@@ -128,9 +128,10 @@ export async function PATCH(request: NextRequest) {
         }
 
         const body = await request.json()
-        const { chargeId, isPaid, caisseId } = body
+        const { id, chargeId, description, amount, category, reference, notes, isPaid, caisseId } = body
+        const targetId = id || chargeId
 
-        if (!chargeId) {
+        if (!targetId) {
             return NextResponse.json(
                 { error: "Charge ID is required" },
                 { status: 400 }
@@ -139,7 +140,7 @@ export async function PATCH(request: NextRequest) {
 
         // Get the existing charge
         const existingCharge = await prisma.charge.findUnique({
-            where: { id: chargeId },
+            where: { id: targetId },
             include: {
                 transactions: true
             }
@@ -150,6 +151,22 @@ export async function PATCH(request: NextRequest) {
                 { error: "Charge not found" },
                 { status: 404 }
             )
+        }
+
+        // If updating basic fields (description, amount, category, etc.)
+        if (description !== undefined || amount !== undefined || category !== undefined) {
+            const updatedCharge = await prisma.charge.update({
+                where: { id: targetId },
+                data: {
+                    ...(description && { description }),
+                    ...(amount && { amount }),
+                    ...(category && { category }),
+                    ...(reference !== undefined && { reference }),
+                    ...(notes !== undefined && { notes }),
+                    ...(isPaid !== undefined && { isPaid })
+                }
+            })
+            return NextResponse.json(updatedCharge)
         }
 
         // If marking as paid
@@ -182,7 +199,7 @@ export async function PATCH(request: NextRequest) {
 
             // Update charge and create transaction
             const updatedCharge = await prisma.charge.update({
-                where: { id: chargeId },
+                where: { id: targetId },
                 data: {
                     isPaid: true,
                     transactions: {
@@ -240,7 +257,7 @@ export async function PATCH(request: NextRequest) {
 
             // Update charge
             const updatedCharge = await prisma.charge.update({
-                where: { id: chargeId },
+                where: { id: targetId },
                 data: {
                     isPaid: false
                 },
@@ -259,6 +276,60 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json(existingCharge)
     } catch (error) {
         console.error("Error updating charge:", error)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const session = await auth()
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const { searchParams } = new URL(request.url)
+        const id = searchParams.get('id')
+
+        if (!id) {
+            return NextResponse.json({ error: "ID is required" }, { status: 400 })
+        }
+
+        // Get charge with transactions to update caisse balance
+        const charge = await prisma.charge.findUnique({
+            where: { id },
+            include: {
+                transactions: true
+            }
+        })
+
+        if (!charge) {
+            return NextResponse.json({ error: "Charge not found" }, { status: 404 })
+        }
+
+        // If charge was paid, restore caisse balances
+        if (charge.isPaid) {
+            for (const transaction of charge.transactions) {
+                if (transaction.caisseId) {
+                    await prisma.caisse.update({
+                        where: { id: transaction.caisseId },
+                        data: {
+                            balance: {
+                                increment: transaction.amount
+                            }
+                        }
+                    })
+                }
+            }
+        }
+
+        // Delete charge (transactions will be deleted automatically due to cascade)
+        await prisma.charge.delete({
+            where: { id }
+        })
+
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        console.error("Error deleting charge:", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }

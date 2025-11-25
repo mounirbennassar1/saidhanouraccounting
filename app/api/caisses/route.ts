@@ -52,3 +52,59 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }
+
+export async function PATCH(request: NextRequest) {
+    try {
+        const session = await auth()
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const body = await request.json()
+        const { id, name, type, fixedAmount, description } = body
+
+        if (!id) {
+            return NextResponse.json({ error: "ID is required" }, { status: 400 })
+        }
+
+        const caisse = await prisma.caisse.update({
+            where: { id },
+            data: {
+                name,
+                type,
+                fixedAmount,
+                description
+            }
+        })
+
+        return NextResponse.json(caisse)
+    } catch (error) {
+        console.error("Error updating caisse:", error)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const session = await auth()
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const { searchParams } = new URL(request.url)
+        const id = searchParams.get('id')
+
+        if (!id) {
+            return NextResponse.json({ error: "ID is required" }, { status: 400 })
+        }
+
+        await prisma.caisse.delete({
+            where: { id }
+        })
+
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        console.error("Error deleting caisse:", error)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}
