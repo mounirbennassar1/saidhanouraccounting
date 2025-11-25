@@ -7,6 +7,7 @@ import { Plus, Wallet, ShoppingCart, Receipt, TrendingUp } from 'lucide-react'
 
 interface FormsProps {
     onSuccess: () => void
+    hideButtons?: ('achat' | 'charge' | 'caisse' | 'revenue')[]
 }
 
 interface Caisse {
@@ -22,7 +23,7 @@ interface ChargeCategory {
     color: string | null
 }
 
-export default function Forms({ onSuccess }: FormsProps) {
+export default function Forms({ onSuccess, hideButtons = [] }: FormsProps) {
     const [showCaisseModal, setShowCaisseModal] = useState(false)
     const [showAchatModal, setShowAchatModal] = useState(false)
     const [showChargeModal, setShowChargeModal] = useState(false)
@@ -208,22 +209,30 @@ export default function Forms({ onSuccess }: FormsProps) {
         <>
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-4 mb-8">
-                <button onClick={() => setShowCaisseModal(true)} className="btn btn-primary bg-indigo-600 hover:bg-indigo-700">
-                    <Wallet className="w-4 h-4" />
-                    Nouvelle Caisse
-                </button>
-                <button onClick={() => setShowRevenueModal(true)} className="btn btn-primary bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/25">
-                    <TrendingUp className="w-4 h-4" />
-                    Nouveau Revenu
-                </button>
-                <button onClick={() => setShowAchatModal(true)} className="btn btn-primary bg-pink-600 hover:bg-pink-700 shadow-pink-500/25">
-                    <ShoppingCart className="w-4 h-4" />
-                    Nouvel Achat
-                </button>
-                <button onClick={() => setShowChargeModal(true)} className="btn btn-primary bg-cyan-600 hover:bg-cyan-700 shadow-cyan-500/25">
-                    <Receipt className="w-4 h-4" />
-                    Nouvelle Charge
-                </button>
+                {!hideButtons.includes('caisse') && (
+                    <button onClick={() => setShowCaisseModal(true)} className="btn btn-primary bg-indigo-600 hover:bg-indigo-700">
+                        <Wallet className="w-4 h-4" />
+                        Nouvelle Caisse
+                    </button>
+                )}
+                {!hideButtons.includes('revenue') && (
+                    <button onClick={() => setShowRevenueModal(true)} className="btn btn-primary bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/25">
+                        <TrendingUp className="w-4 h-4" />
+                        Nouveau Revenu
+                    </button>
+                )}
+                {!hideButtons.includes('achat') && (
+                    <button onClick={() => setShowAchatModal(true)} className="btn btn-primary bg-pink-600 hover:bg-pink-700 shadow-pink-500/25">
+                        <ShoppingCart className="w-4 h-4" />
+                        Nouvel Achat
+                    </button>
+                )}
+                {!hideButtons.includes('charge') && (
+                    <button onClick={() => setShowChargeModal(true)} className="btn btn-primary bg-cyan-600 hover:bg-cyan-700 shadow-cyan-500/25">
+                        <Receipt className="w-4 h-4" />
+                        Nouvelle Charge
+                    </button>
+                )}
                 <CategoryManager onUpdate={fetchChargeCategories} />
             </div>
 

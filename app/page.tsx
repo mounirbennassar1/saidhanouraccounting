@@ -36,7 +36,7 @@ export default function Home() {
               <h2 className="text-3xl font-bold gradient-text mb-2">Gestion des Caisses</h2>
               <p className="text-muted">Vue d'ensemble de toutes les caisses</p>
             </div>
-            <Forms onSuccess={handleSuccess} />
+            <Forms onSuccess={handleSuccess} hideButtons={['achat', 'charge']} />
             <CaissesTable key={refreshKey} />
           </div>
         )}
