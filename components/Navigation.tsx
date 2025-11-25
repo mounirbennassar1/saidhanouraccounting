@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { LayoutDashboard, Wallet, ShoppingCart, Receipt, Menu, X, LogOut, ChevronDown, Users, Truck } from 'lucide-react'
+import { LayoutDashboard, Wallet, ShoppingCart, Receipt, Menu, X, LogOut, ChevronDown, Users, Truck, FileBarChart } from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 
 interface NavigationProps {
@@ -15,6 +15,7 @@ export default function Navigation({ activeTab, onTabChange }: NavigationProps) 
 
     const navItems = [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'reports', label: 'Rapports', icon: FileBarChart },
         { id: 'clients', label: 'Clients', icon: Users },
         { id: 'suppliers', label: 'Fournisseurs', icon: Truck },
         { id: 'caisses', label: 'Caisses', icon: Wallet },

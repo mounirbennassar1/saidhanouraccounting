@@ -7,6 +7,7 @@ import Forms from '@/components/Forms'
 import { CaissesTable, AchatsTable, ChargesTable } from '@/components/Tables'
 import ClientManagement from '@/components/ClientManagement'
 import SupplierManagement from '@/components/SupplierManagement'
+import Reports from '@/components/Reports'
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -71,6 +72,12 @@ export default function Home() {
         {activeTab === 'suppliers' && (
           <div className="animate-fade-in">
             <SupplierManagement key={refreshKey} />
+          </div>
+        )}
+
+        {activeTab === 'reports' && (
+          <div className="animate-fade-in">
+            <Reports key={refreshKey} />
           </div>
         )}
       </main>
