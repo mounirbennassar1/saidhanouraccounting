@@ -134,10 +134,12 @@ export async function GET() {
         // Calculate net balance: current balance - unpaid liabilities
         const netBalance = totalCaisseBalance - unpaidCharges
 
-        // Calculate cash flow
-        const totalRevenue = recentTransactions
-            .filter((t: any) => t.type === 'REVENUE')
-            .reduce((sum: number, t: any) => sum + t.amount, 0)
+        // Calculate cash flow (get ALL revenue transactions, not just recent)
+        const allRevenueTransactions = await prisma.transaction.findMany({
+            where: { type: 'REVENUE' }
+        })
+        
+        const totalRevenue = allRevenueTransactions.reduce((sum: number, t: any) => sum + t.amount, 0)
         
         const cashFlow = {
             inflow: totalRevenue,
@@ -151,31 +153,45 @@ export async function GET() {
             include: {
                 orders: {
                     include: {
-                        payments: true
+                        payments: true,
+                        items: true
                     }
                 }
             }
         })
 
         const totalClients = clients.length
+        
+        // Calculate total orders across all clients
+        const totalOrders = clients.reduce((sum: number, client: any) => sum + client.orders.length, 0)
+        
+        // Calculate total revenue from all client orders (all payments received)
         const totalClientRevenue = clients.reduce((sum: number, client: any) => {
             return sum + client.orders.reduce((orderSum: number, order: any) => orderSum + order.paidAmount, 0)
         }, 0)
+        
+        // Calculate total outstanding balance (remaining amounts to be paid)
         const totalOutstandingBalance = clients.reduce((sum: number, client: any) => {
             return sum + client.orders.reduce((orderSum: number, order: any) => orderSum + order.remainingAmount, 0)
         }, 0)
 
+        // Count clients with outstanding debt
         const clientsWithDebt = clients.filter((client: any) => {
             const totalDebt = client.orders.reduce((sum: number, order: any) => sum + order.remainingAmount, 0)
             return totalDebt > 0
         }).length
+
+        // Calculate average order value (total amount of all orders / number of orders)
+        const totalOrderValue = clients.reduce((sum: number, client: any) => {
+            return sum + client.orders.reduce((orderSum: number, order: any) => orderSum + order.totalAmount, 0)
+        }, 0)
 
         const clientStats = {
             totalClients,
             totalClientRevenue,
             totalOutstandingBalance,
             clientsWithDebt,
-            averageOrderValue: totalClients > 0 ? totalClientRevenue / totalClients : 0
+            averageOrderValue: totalOrders > 0 ? totalOrderValue / totalOrders : 0
         }
 
         return NextResponse.json({
