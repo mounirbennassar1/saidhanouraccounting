@@ -32,7 +32,6 @@ function LoginForm() {
                 email,
                 password,
                 redirect: false,
-                callbackUrl: callbackUrl,
             })
 
             console.log('Login result:', result)
@@ -42,11 +41,46 @@ function LoginForm() {
                 setError('Email ou mot de passe incorrect')
                 setLoading(false)
             } else if (result?.ok) {
-                console.log('Login successful, redirecting to:', callbackUrl)
-                // Wait a moment for cookie to be set, then redirect
-                setTimeout(() => {
-                    window.location.href = callbackUrl
-                }, 500)
+                console.log('Login successful! Verifying session...')
+                
+                // Poll for session to be available (max 3 seconds)
+                let attempts = 0
+                const maxAttempts = 6
+                
+                const checkSession = async () => {
+                    try {
+                        const res = await fetch('/api/auth/session', {
+                            method: 'GET',
+                            credentials: 'include',
+                            cache: 'no-store'
+                        })
+                        const session = await res.json()
+                        
+                        if (session?.user) {
+                            console.log('✅ Session confirmed, redirecting...')
+                            // Force full page reload to ensure middleware sees cookie
+                            window.location.href = callbackUrl || '/'
+                        } else if (attempts < maxAttempts) {
+                            attempts++
+                            console.log(`Session not ready yet, attempt ${attempts}/${maxAttempts}`)
+                            setTimeout(checkSession, 500)
+                        } else {
+                            console.log('Session timeout, redirecting anyway...')
+                            window.location.href = callbackUrl || '/'
+                        }
+                    } catch (err) {
+                        console.error('Session check error:', err)
+                        if (attempts < maxAttempts) {
+                            attempts++
+                            setTimeout(checkSession, 500)
+                        } else {
+                            window.location.href = callbackUrl || '/'
+                        }
+                    }
+                }
+                
+                // Start checking after a short delay
+                setTimeout(checkSession, 200)
             } else {
                 console.error('Unexpected login result:', result)
                 setError('Erreur de connexion')

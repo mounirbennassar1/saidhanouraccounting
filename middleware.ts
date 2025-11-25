@@ -23,19 +23,34 @@ export async function middleware(request: NextRequest) {
 
         // If not authenticated, redirect to login
         if (!token) {
-            const loginUrl = new URL("/login", request.url)
-            loginUrl.searchParams.set("callbackUrl", pathname)
-            return NextResponse.redirect(loginUrl)
+            // Also check for any NextAuth cookies as fallback
+            const hasAuthCookie = request.cookies.getAll().some(cookie => 
+                cookie.name.includes('next-auth') || cookie.name.includes('authjs')
+            )
+            
+            if (!hasAuthCookie) {
+                const loginUrl = new URL("/login", request.url)
+                loginUrl.searchParams.set("callbackUrl", pathname)
+                return NextResponse.redirect(loginUrl)
+            }
         }
 
         // Allow authenticated requests
         return NextResponse.next()
     } catch (error) {
-        // If token check fails, redirect to login
-        console.error('Middleware auth check error:', error)
-        const loginUrl = new URL("/login", request.url)
-        loginUrl.searchParams.set("callbackUrl", pathname)
-        return NextResponse.redirect(loginUrl)
+        // If token check fails, check for cookies as fallback
+        const hasAuthCookie = request.cookies.getAll().some(cookie => 
+            cookie.name.includes('next-auth') || cookie.name.includes('authjs')
+        )
+        
+        if (!hasAuthCookie) {
+            const loginUrl = new URL("/login", request.url)
+            loginUrl.searchParams.set("callbackUrl", pathname)
+            return NextResponse.redirect(loginUrl)
+        }
+        
+        // If cookie exists, allow through (might be setting up)
+        return NextResponse.next()
     }
 }
 
