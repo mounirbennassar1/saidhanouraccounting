@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { getToken } from "next-auth/jwt"
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
@@ -9,24 +8,26 @@ export async function middleware(request: NextRequest) {
     const publicPaths = ['/login', '/debug-login']
     const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
     
+    // Always allow public paths
     if (isPublicPath) {
         return NextResponse.next()
     }
 
-    // Check authentication with longer timeout for cookie reading
-    const token = await getToken({ 
-        req: request,
-        secret: process.env.NEXTAUTH_SECRET,
-        secureCookie: process.env.NODE_ENV === 'production'
-    })
+    // Check for session cookie
+    const sessionToken = request.cookies.get(
+        process.env.NODE_ENV === 'production' 
+            ? '__Secure-next-auth.session-token'
+            : 'next-auth.session-token'
+    )
 
-    // If not authenticated, redirect to login
-    if (!token) {
+    // If no session cookie, redirect to login
+    if (!sessionToken) {
         const loginUrl = new URL("/login", request.url)
         loginUrl.searchParams.set("callbackUrl", pathname)
         return NextResponse.redirect(loginUrl)
     }
 
+    // Allow authenticated requests
     return NextResponse.next()
 }
 

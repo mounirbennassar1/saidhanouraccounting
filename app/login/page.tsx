@@ -38,10 +38,8 @@ function LoginForm() {
                 setError('Email ou mot de passe incorrect')
                 setLoading(false)
             } else if (result?.ok) {
-                // Wait a bit for the cookie to be set, then force reload to the callback URL
-                setTimeout(() => {
-                    window.location.href = callbackUrl
-                }, 100)
+                // Force a full page reload to ensure session is loaded
+                window.location.replace(callbackUrl)
             }
         } catch (err) {
             setError('Une erreur est survenue')
