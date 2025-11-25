@@ -14,7 +14,8 @@ import {
     DollarSign,
     PieChart as PieChartIcon,
     BarChart3,
-    Users
+    Users,
+    ShoppingBag
 } from 'lucide-react'
 import {
     BarChart,
@@ -42,6 +43,7 @@ interface DashboardStats {
         totalAchats: number
         totalCharges: number
         totalRevenue: number
+        totalVentes: number
         totalSpent: number
         transactionCount: number
     }>
@@ -428,6 +430,20 @@ export default function Dashboard() {
 
                                     {/* Transactions breakdown */}
                                     <div className="mt-4 pt-4 border-t border-white/5 space-y-2">
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-slate-400 flex items-center gap-2">
+                                                <TrendingUp className="w-3 h-3 text-emerald-400" />
+                                                Revenus
+                                            </span>
+                                            <span className="text-emerald-400 font-medium">+{caisse.totalRevenue.toLocaleString()} DH</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-slate-400 flex items-center gap-2">
+                                                <ShoppingBag className="w-3 h-3 text-emerald-400" />
+                                                Ventes
+                                            </span>
+                                            <span className="text-emerald-400 font-medium">+{caisse.totalVentes.toLocaleString()} DH</span>
+                                        </div>
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="text-slate-400 flex items-center gap-2">
                                                 <ShoppingCart className="w-3 h-3 text-pink-400" />

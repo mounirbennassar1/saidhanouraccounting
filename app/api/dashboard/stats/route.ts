@@ -55,10 +55,12 @@ export async function GET() {
             const achatTransactions = caisse.transactions.filter((t: any) => t.type === 'ACHAT')
             const chargeTransactions = caisse.transactions.filter((t: any) => t.type === 'CHARGE')
             const revenueTransactions = caisse.transactions.filter((t: any) => t.type === 'REVENUE')
+            const venteTransactions = caisse.transactions.filter((t: any) => t.type === 'VENTE')
             
             const totalAchatsFromCaisse = achatTransactions.reduce((sum: number, t: any) => sum + t.amount, 0)
             const totalChargesFromCaisse = chargeTransactions.reduce((sum: number, t: any) => sum + t.amount, 0)
             const totalRevenue = revenueTransactions.reduce((sum: number, t: any) => sum + t.amount, 0)
+            const totalVentes = venteTransactions.reduce((sum: number, t: any) => sum + t.amount, 0)
             const totalSpent = totalAchatsFromCaisse + totalChargesFromCaisse
 
             return {
@@ -70,6 +72,7 @@ export async function GET() {
                 totalAchats: totalAchatsFromCaisse,
                 totalCharges: totalChargesFromCaisse,
                 totalRevenue: totalRevenue,
+                totalVentes: totalVentes,
                 totalSpent: totalSpent,
                 transactionCount: caisse.transactions.length
             }
