@@ -87,6 +87,25 @@ export async function POST(request: NextRequest) {
             }
         })
 
+        // Automatically create a Vente for this order
+        const totalQuantity = items.reduce((sum: number, item: any) => sum + item.quantity, 0)
+        const itemsDescription = items.map((item: any) => 
+            `${item.quantity}x ${item.description}`
+        ).join(', ')
+        
+        const vente = await prisma.vente.create({
+            data: {
+                description: `Commande ${orderNumber} - ${order.client.name}`,
+                amount: totalAmount,
+                quantity: totalQuantity,
+                unitPrice: totalQuantity > 0 ? totalAmount / totalQuantity : totalAmount,
+                category: 'Commande Client',
+                reference: orderNumber,
+                notes: itemsDescription,
+                clientOrderId: order.id
+            }
+        })
+
         return NextResponse.json(order, { status: 201 })
     } catch (error) {
         console.error("Error creating order:", error)

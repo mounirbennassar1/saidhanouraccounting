@@ -150,6 +150,9 @@ model Vente {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  clientOrderId String?      @unique
+  clientOrder   ClientOrder? @relation(fields: [clientOrderId], references: [id])
+  
   transactions Transaction[]
 }
 
@@ -228,6 +231,7 @@ model ClientOrder {
   
   items       OrderItem[]
   payments    ClientPayment[]
+  vente       Vente?
   
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt

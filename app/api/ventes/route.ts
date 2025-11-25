@@ -16,6 +16,11 @@ export async function GET() {
                     include: {
                         caisse: true
                     }
+                },
+                clientOrder: {
+                    include: {
+                        client: true
+                    }
                 }
             }
         })
@@ -101,6 +106,18 @@ export async function PATCH(request: Request) {
             return NextResponse.json({ error: "Vente ID required" }, { status: 400 })
         }
 
+        // Check if vente is linked to a client order
+        const existingVente = await prisma.vente.findUnique({
+            where: { id },
+            select: { clientOrderId: true }
+        })
+
+        if (existingVente?.clientOrderId) {
+            return NextResponse.json({ 
+                error: "Cette vente est liée à une commande client et ne peut pas être modifiée directement" 
+            }, { status: 400 })
+        }
+
         const amount = quantity * unitPrice
 
         const vente = await prisma.vente.update({
@@ -141,12 +158,20 @@ export async function DELETE(request: Request) {
         const vente = await prisma.vente.findUnique({
             where: { id },
             include: {
-                transactions: true
+                transactions: true,
+                clientOrder: true
             }
         })
 
         if (!vente) {
             return NextResponse.json({ error: "Vente not found" }, { status: 404 })
+        }
+
+        // Prevent deletion of ventes linked to client orders
+        if (vente.clientOrderId) {
+            return NextResponse.json({ 
+                error: "Cette vente est liée à une commande client et ne peut pas être supprimée directement" 
+            }, { status: 400 })
         }
 
         // Reverse caisse balance changes

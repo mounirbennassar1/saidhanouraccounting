@@ -21,6 +21,7 @@ interface Vente {
     date: string
     reference: string | null
     notes: string | null
+    clientOrderId: string | null
     transactions: Array<{
         caisse: { name: string } | null
     }>
@@ -270,9 +271,16 @@ export default function VentesManagement() {
                                         <td className="table-cell font-medium text-white">
                                             <div>
                                                 <p>{vente.description}</p>
-                                                {vente.category && (
-                                                    <span className="text-xs text-slate-500">{vente.category}</span>
-                                                )}
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    {vente.category && (
+                                                        <span className="text-xs text-slate-500">{vente.category}</span>
+                                                    )}
+                                                    {vente.clientOrderId && (
+                                                        <span className="badge badge-info text-xs">
+                                                            Client Order
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="table-cell text-right text-white">{vente.quantity}</td>
@@ -293,20 +301,28 @@ export default function VentesManagement() {
                                         </td>
                                         <td className="table-cell">
                                             <div className="flex items-center justify-center gap-2">
-                                                <button 
-                                                    onClick={() => handleEdit(vente)}
-                                                    className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
-                                                    title="Modifier"
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleDelete(vente.id)}
-                                                    className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
-                                                    title="Supprimer"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                {vente.clientOrderId ? (
+                                                    <span className="text-xs text-slate-500 italic">
+                                                        Lié à commande
+                                                    </span>
+                                                ) : (
+                                                    <>
+                                                        <button 
+                                                            onClick={() => handleEdit(vente)}
+                                                            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+                                                            title="Modifier"
+                                                        >
+                                                            <Edit className="w-4 h-4" />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleDelete(vente.id)}
+                                                            className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                                                            title="Supprimer"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
