@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { LayoutDashboard, Wallet, ShoppingCart, Receipt, Menu, X, LogOut, ChevronDown, Users, Truck, FileBarChart, ShoppingBag } from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 
@@ -33,14 +34,15 @@ export default function Navigation({ activeTab, onTabChange }: NavigationProps) 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                            <span className="text-xl font-bold text-white">S</span>
-                        </div>
-                        <div>
-                            <span className="text-lg font-bold text-white tracking-tight block">Said App</span>
-                            <span className="text-xs text-slate-400 font-medium tracking-wide uppercase">Finance Manager</span>
-                        </div>
+                    <div className="flex items-center">
+                        <Image 
+                            src="/hannour.png" 
+                            alt="Hannour Logo" 
+                            width={180} 
+                            height={60}
+                            className="h-12 w-auto object-contain"
+                            priority
+                        />
                     </div>
 
                     {/* Desktop Navigation */}
