@@ -28,22 +28,15 @@ function LoginForm() {
         setLoading(true)
 
         try {
-            const result = await signIn('credentials', {
+            // Let NextAuth handle the redirect automatically
+            await signIn('credentials', {
                 email,
                 password,
                 callbackUrl,
-                redirect: false,
+                redirect: true, // Let NextAuth redirect
             })
-
-            if (result?.error) {
-                setError('Email ou mot de passe incorrect')
-                setLoading(false)
-            } else if (result?.ok) {
-                // Force a hard navigation to ensure session is loaded
-                window.location.href = callbackUrl
-            }
         } catch (err) {
-            setError('Une erreur est survenue')
+            setError('Email ou mot de passe incorrect')
             setLoading(false)
         }
     }
