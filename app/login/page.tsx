@@ -28,15 +28,23 @@ function LoginForm() {
         setLoading(true)
 
         try {
-            // Let NextAuth handle the redirect automatically
-            await signIn('credentials', {
+            const result = await signIn('credentials', {
                 email,
                 password,
-                callbackUrl,
-                redirect: true, // Let NextAuth redirect
+                redirect: false,
             })
+
+            if (result?.error) {
+                setError('Email ou mot de passe incorrect')
+                setLoading(false)
+            } else if (result?.ok) {
+                // Wait a bit for the cookie to be set, then force reload to the callback URL
+                setTimeout(() => {
+                    window.location.href = callbackUrl
+                }, 100)
+            }
         } catch (err) {
-            setError('Email ou mot de passe incorrect')
+            setError('Une erreur est survenue')
             setLoading(false)
         }
     }
