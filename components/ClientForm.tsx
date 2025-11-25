@@ -2,11 +2,29 @@
 
 import { useState } from 'react'
 
-interface ClientFormProps {
-    onSuccess: () => void
+interface Client {
+    id: string
+    name: string
+    email?: string | null
+    phone?: string | null
+    address?: string | null
+    notes?: string | null
 }
 
-export default function ClientForm({ onSuccess }: ClientFormProps) {
+interface ClientFormProps {
+    client?: Client
+    onSuccess: () => void
+    onClose?: () => void
+}
+
+export default function ClientForm({ client, onSuccess, onClose }: ClientFormProps) {
+    const [formData, setFormData] = useState({
+        name: client?.name || '',
+        email: client?.email || '',
+        phone: client?.phone || '',
+        address: client?.address || '',
+        notes: client?.notes || ''
+    })
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -14,30 +32,28 @@ export default function ClientForm({ onSuccess }: ClientFormProps) {
         e.preventDefault()
         setLoading(true)
         setError(null)
-        
-        const formData = new FormData(e.currentTarget)
 
         try {
-            const response = await fetch('/api/clients', {
-                method: 'POST',
+            const url = '/api/clients'
+            const method = client ? 'PATCH' : 'POST'
+            const body = client 
+                ? { clientId: client.id, ...formData }
+                : formData
+
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: formData.get('name'),
-                    email: formData.get('email') || null,
-                    phone: formData.get('phone') || null,
-                    address: formData.get('address') || null,
-                    notes: formData.get('notes') || null
-                })
+                body: JSON.stringify(body)
             })
 
             if (response.ok) {
                 onSuccess()
             } else {
                 const data = await response.json()
-                setError(data.error || 'Erreur lors de la création du client')
+                setError(data.error || `Erreur lors de ${client ? 'la modification' : 'la création'} du client`)
             }
         } catch (error) {
-            console.error('Error creating client:', error)
+            console.error('Error saving client:', error)
             setError('Erreur de connexion au serveur')
         } finally {
             setLoading(false)
@@ -58,7 +74,8 @@ export default function ClientForm({ onSuccess }: ClientFormProps) {
                 </label>
                 <input
                     type="text"
-                    name="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
                     className="input"
                     placeholder="Ex: Mohammed Alami"
@@ -72,7 +89,8 @@ export default function ClientForm({ onSuccess }: ClientFormProps) {
                     </label>
                     <input
                         type="email"
-                        name="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         className="input"
                         placeholder="email@exemple.com"
                     />
@@ -84,7 +102,8 @@ export default function ClientForm({ onSuccess }: ClientFormProps) {
                     </label>
                     <input
                         type="tel"
-                        name="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         className="input"
                         placeholder="+212 6 12 34 56 78"
                     />
@@ -97,7 +116,8 @@ export default function ClientForm({ onSuccess }: ClientFormProps) {
                 </label>
                 <input
                     type="text"
-                    name="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     className="input"
                     placeholder="Ville, Pays"
                 />
@@ -108,20 +128,31 @@ export default function ClientForm({ onSuccess }: ClientFormProps) {
                     Notes
                 </label>
                 <textarea
-                    name="notes"
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     rows={3}
                     className="input"
                     placeholder="Notes sur le client..."
-                ></textarea>
+                />
             </div>
 
             <div className="flex gap-3 pt-4">
+                {onClose && (
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="btn-secondary flex-1"
+                        disabled={loading}
+                    >
+                        Annuler
+                    </button>
+                )}
                 <button
                     type="submit"
                     disabled={loading}
                     className="btn btn-primary flex-1"
                 >
-                    {loading ? 'Création...' : 'Créer le Client'}
+                    {loading ? (client ? 'Modification...' : 'Création...') : (client ? 'Modifier le Client' : 'Créer le Client')}
                 </button>
             </div>
         </form>

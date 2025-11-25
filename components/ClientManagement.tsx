@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, Plus, DollarSign, Clock, CheckCircle, AlertCircle, Eye } from 'lucide-react'
+import { Users, Plus, DollarSign, Clock, CheckCircle, AlertCircle, Eye, Edit, Trash2 } from 'lucide-react'
 import Modal from './Modal'
 import ClientForm from './ClientForm'
 import OrderForm from './OrderForm'
@@ -50,6 +50,7 @@ interface Payment {
 export default function ClientManagement() {
     const [clients, setClients] = useState<Client[]>([])
     const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+    const [editingClient, setEditingClient] = useState<Client | null>(null)
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
     const [showClientModal, setShowClientModal] = useState(false)
     const [showOrderModal, setShowOrderModal] = useState(false)
@@ -78,6 +79,32 @@ export default function ClientManagement() {
     const handleClientSuccess = () => {
         fetchClients()
         setShowClientModal(false)
+        setEditingClient(null)
+    }
+
+    const handleEdit = (client: Client) => {
+        setEditingClient(client)
+        setShowClientModal(true)
+    }
+
+    const handleDelete = async (clientId: string) => {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) return
+
+        try {
+            const response = await fetch(`/api/clients?id=${clientId}`, {
+                method: 'DELETE'
+            })
+
+            if (response.ok) {
+                fetchClients()
+            } else {
+                const data = await response.json()
+                alert(data.error || 'Erreur lors de la suppression')
+            }
+        } catch (error) {
+            console.error('Error deleting client:', error)
+            alert('Erreur de connexion au serveur')
+        }
     }
 
     const handleOrderSuccess = () => {
@@ -251,23 +278,37 @@ export default function ClientManagement() {
                                         )}
                                     </td>
                                     <td className="table-cell">
-                                        <div className="flex items-center justify-center gap-2">
+                                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button
                                                 onClick={() => {
                                                     setSelectedClient(client)
                                                     setShowClientDetails(true)
                                                 }}
-                                                className="btn btn-secondary text-xs"
+                                                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+                                                title="Voir détails"
                                             >
-                                                <Eye className="w-3 h-3" />
-                                                Détails
+                                                <Eye className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleEdit(client)}
+                                                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+                                                title="Modifier"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(client.id)}
+                                                className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                                                title="Supprimer"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => {
                                                     setSelectedClient(client)
                                                     setShowOrderModal(true)
                                                 }}
-                                                className="btn btn-primary text-xs bg-emerald-600 hover:bg-emerald-700"
+                                                className="btn btn-primary text-xs bg-emerald-600 hover:bg-emerald-700 ml-2"
                                             >
                                                 <Plus className="w-3 h-3" />
                                                 Commande
@@ -282,8 +323,22 @@ export default function ClientManagement() {
             </div>
 
             {/* Modals */}
-            <Modal isOpen={showClientModal} onClose={() => setShowClientModal(false)} title="Nouveau Client">
-                <ClientForm onSuccess={handleClientSuccess} />
+            <Modal 
+                isOpen={showClientModal} 
+                onClose={() => {
+                    setShowClientModal(false)
+                    setEditingClient(null)
+                }} 
+                title={editingClient ? 'Modifier le Client' : 'Nouveau Client'}
+            >
+                <ClientForm 
+                    client={editingClient} 
+                    onSuccess={handleClientSuccess}
+                    onClose={() => {
+                        setShowClientModal(false)
+                        setEditingClient(null)
+                    }}
+                />
             </Modal>
 
             <Modal

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Truck, Plus, DollarSign, Clock, CheckCircle, AlertCircle, Eye, ShoppingCart } from 'lucide-react'
+import { Truck, Plus, DollarSign, Clock, CheckCircle, AlertCircle, Eye, ShoppingCart, Edit, Trash2 } from 'lucide-react'
 import Modal from './Modal'
 import SupplierForm from './SupplierForm'
 import SupplierOrderForm from './SupplierOrderForm'
@@ -57,6 +57,7 @@ interface SupplierPayment {
 export default function SupplierManagement() {
     const [suppliers, setSuppliers] = useState<Supplier[]>([])
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
+    const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
     const [selectedOrder, setSelectedOrder] = useState<SupplierOrder | null>(null)
     const [showSupplierModal, setShowSupplierModal] = useState(false)
     const [showOrderModal, setShowOrderModal] = useState(false)
@@ -85,6 +86,32 @@ export default function SupplierManagement() {
     const handleSupplierSuccess = () => {
         fetchSuppliers()
         setShowSupplierModal(false)
+        setEditingSupplier(null)
+    }
+
+    const handleEdit = (supplier: Supplier) => {
+        setEditingSupplier(supplier)
+        setShowSupplierModal(true)
+    }
+
+    const handleDelete = async (supplierId: string) => {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ?')) return
+
+        try {
+            const response = await fetch(`/api/suppliers?id=${supplierId}`, {
+                method: 'DELETE'
+            })
+
+            if (response.ok) {
+                fetchSuppliers()
+            } else {
+                const data = await response.json()
+                alert(data.error || 'Erreur lors de la suppression')
+            }
+        } catch (error) {
+            console.error('Error deleting supplier:', error)
+            alert('Erreur de connexion au serveur')
+        }
     }
 
     const handleOrderSuccess = () => {
@@ -284,26 +311,41 @@ export default function SupplierManagement() {
                                             )}
                                         </td>
                                         <td className="table-cell">
-                                            <div className="flex items-center justify-center gap-2">
+                                            <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button
                                                     onClick={() => {
                                                         setSelectedSupplier(supplier)
                                                         setShowSupplierDetails(true)
                                                     }}
-                                                    className="btn-icon btn-icon-secondary"
+                                                    className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
                                                     title="Voir détails"
                                                 >
                                                     <Eye className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleEdit(supplier)}
+                                                    className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+                                                    title="Modifier"
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(supplier.id)}
+                                                    className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                                                    title="Supprimer"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => {
                                                         setSelectedSupplier(supplier)
                                                         setShowOrderModal(true)
                                                     }}
-                                                    className="btn-icon btn-icon-primary bg-rose-500/10 hover:bg-rose-500/20 text-rose-400"
+                                                    className="btn btn-primary text-xs bg-rose-600 hover:bg-rose-700 ml-2"
                                                     title="Nouvelle commande"
                                                 >
-                                                    <ShoppingCart className="w-4 h-4" />
+                                                    <ShoppingCart className="w-3 h-3" />
+                                                    Commande
                                                 </button>
                                             </div>
                                         </td>
@@ -318,13 +360,19 @@ export default function SupplierManagement() {
             {/* Modals */}
             <Modal 
                 isOpen={showSupplierModal}
-                onClose={() => setShowSupplierModal(false)}
-                title={selectedSupplier ? 'Modifier le fournisseur' : 'Nouveau fournisseur'}
+                onClose={() => {
+                    setShowSupplierModal(false)
+                    setEditingSupplier(null)
+                }}
+                title={editingSupplier ? 'Modifier le fournisseur' : 'Nouveau fournisseur'}
             >
                 <SupplierForm
-                    supplier={selectedSupplier}
+                    supplier={editingSupplier}
                     onSubmit={handleSupplierSuccess}
-                    onClose={() => setShowSupplierModal(false)}
+                    onClose={() => {
+                        setShowSupplierModal(false)
+                        setEditingSupplier(null)
+                    }}
                 />
             </Modal>
 
