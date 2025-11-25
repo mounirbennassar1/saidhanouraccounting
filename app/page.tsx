@@ -47,7 +47,7 @@ export default function Home() {
               <h2 className="text-3xl font-bold gradient-text mb-2">Gestion des Achats</h2>
               <p className="text-muted">Historique de tous les achats</p>
             </div>
-            <Forms onSuccess={handleSuccess} />
+            <Forms onSuccess={handleSuccess} hideButtons={['caisse', 'revenue']} />
             <AchatsTable key={refreshKey} />
           </div>
         )}
@@ -58,7 +58,7 @@ export default function Home() {
               <h2 className="text-3xl font-bold gradient-text mb-2">Gestion des Charges</h2>
               <p className="text-muted">Suivi de toutes les charges et dépenses</p>
             </div>
-            <Forms onSuccess={handleSuccess} />
+            <Forms onSuccess={handleSuccess} hideButtons={['caisse', 'revenue']} />
             <ChargesTable key={refreshKey} />
           </div>
         )}
