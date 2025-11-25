@@ -6,9 +6,13 @@ import bcrypt from "bcryptjs"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     adapter: PrismaAdapter(prisma),
-    session: { strategy: "jwt" },
+    session: { 
+        strategy: "jwt",
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+    },
     pages: {
         signIn: "/login",
+        error: "/login",
     },
     providers: [
         Credentials({
@@ -51,7 +55,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         })
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger }) {
             if (user) {
                 token.role = user.role
                 token.id = user.id
@@ -64,6 +68,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 session.user.id = token.id as string
             }
             return session
+        },
+        async redirect({ url, baseUrl }) {
+            // Allows relative callback URLs
+            if (url.startsWith("/")) return `${baseUrl}${url}`
+            // Allows callback URLs on the same origin
+            else if (new URL(url).origin === baseUrl) return url
+            return baseUrl
         }
-    }
+    },
+    debug: process.env.NODE_ENV === "development",
 })

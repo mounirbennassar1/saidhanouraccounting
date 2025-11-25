@@ -1,16 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { LogIn, Loader2 } from 'lucide-react'
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+    
+    const callbackUrl = searchParams.get('callbackUrl') || '/'
+
+    useEffect(() => {
+        const errorParam = searchParams.get('error')
+        if (errorParam) {
+            setError('Une erreur d\'authentification est survenue')
+        }
+    }, [searchParams])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -21,18 +31,19 @@ export default function LoginPage() {
             const result = await signIn('credentials', {
                 email,
                 password,
+                callbackUrl,
                 redirect: false,
             })
 
             if (result?.error) {
                 setError('Email ou mot de passe incorrect')
-            } else {
-                router.push('/')
-                router.refresh()
+                setLoading(false)
+            } else if (result?.ok) {
+                // Force a hard navigation to ensure session is loaded
+                window.location.href = callbackUrl
             }
-        } catch (error) {
+        } catch (err) {
             setError('Une erreur est survenue')
-        } finally {
             setLoading(false)
         }
     }
@@ -116,5 +127,17 @@ export default function LoginPage() {
                 </p>
             </div>
         </div>
+    )
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+            </div>
+        }>
+            <LoginForm />
+        </Suspense>
     )
 }
