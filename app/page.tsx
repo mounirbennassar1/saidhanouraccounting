@@ -7,6 +7,7 @@ import Forms from '@/components/Forms'
 import { CaissesTable, AchatsTable, ChargesTable } from '@/components/Tables'
 import ClientManagement from '@/components/ClientManagement'
 import SupplierManagement from '@/components/SupplierManagement'
+import VentesManagement from '@/components/VentesManagement'
 import Reports from '@/components/Reports'
 
 export default function Home() {
@@ -60,6 +61,12 @@ export default function Home() {
             </div>
             <Forms onSuccess={handleSuccess} hideButtons={['caisse', 'revenue']} />
             <ChargesTable key={refreshKey} />
+          </div>
+        )}
+
+        {activeTab === 'ventes' && (
+          <div className="animate-fade-in">
+            <VentesManagement key={refreshKey} />
           </div>
         )}
 

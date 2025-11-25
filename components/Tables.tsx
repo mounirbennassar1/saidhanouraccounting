@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { Trash2, Edit, X } from 'lucide-react'
+import { Trash2, Edit, X, Eye } from 'lucide-react'
 import Modal from './Modal'
 
 interface Transaction {
@@ -53,6 +53,8 @@ export function CaissesTable() {
     const [showEditModal, setShowEditModal] = useState(false)
     const [editingCaisse, setEditingCaisse] = useState<Caisse | null>(null)
     const [submitting, setSubmitting] = useState(false)
+    const [showDetailsModal, setShowDetailsModal] = useState(false)
+    const [selectedCaisse, setSelectedCaisse] = useState<Caisse | null>(null)
 
     useEffect(() => {
         fetchCaisses()
@@ -70,6 +72,11 @@ export function CaissesTable() {
         } finally {
             setLoading(false)
         }
+    }
+
+    const handleDetails = (caisse: Caisse) => {
+        setSelectedCaisse(caisse)
+        setShowDetailsModal(true)
     }
 
     const handleEdit = (caisse: Caisse) => {
@@ -166,6 +173,13 @@ export function CaissesTable() {
                                     <td className="table-cell">
                                         <div className="flex items-center justify-center gap-2">
                                             <button 
+                                                onClick={() => handleDetails(caisse)}
+                                                className="p-2 hover:bg-indigo-500/10 text-slate-400 hover:text-indigo-400 rounded-lg transition-colors"
+                                                title="Détails"
+                                            >
+                                                <Eye className="w-4 h-4" />
+                                            </button>
+                                            <button 
                                                 onClick={() => handleEdit(caisse)}
                                                 className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
                                                 title="Modifier"
@@ -253,6 +267,88 @@ export function CaissesTable() {
                             </button>
                         </div>
                     </form>
+                )}
+            </Modal>
+
+            {/* Details Modal */}
+            <Modal isOpen={showDetailsModal} onClose={() => setShowDetailsModal(false)} title={`Détails: ${selectedCaisse?.name || ''}`}>
+                {selectedCaisse && (
+                    <div className="space-y-6">
+                        {/* Caisse Info */}
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-xs text-slate-400 mb-1">Type</p>
+                                    <p className="text-white font-medium">{selectedCaisse.type}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-slate-400 mb-1">Solde Actuel</p>
+                                    <p className="text-2xl font-bold text-emerald-400">{selectedCaisse.balance.toLocaleString()} DH</p>
+                                </div>
+                                {selectedCaisse.fixedAmount && (
+                                    <div>
+                                        <p className="text-xs text-slate-400 mb-1">Montant Fixe</p>
+                                        <p className="text-white font-medium">{selectedCaisse.fixedAmount.toLocaleString()} DH</p>
+                                    </div>
+                                )}
+                                <div>
+                                    <p className="text-xs text-slate-400 mb-1">Nombre de Transactions</p>
+                                    <p className="text-white font-medium">{selectedCaisse.transactions?.length || 0}</p>
+                                </div>
+                            </div>
+                            {selectedCaisse.description && (
+                                <div className="mt-4 pt-4 border-t border-white/10">
+                                    <p className="text-xs text-slate-400 mb-1">Description</p>
+                                    <p className="text-white">{selectedCaisse.description}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Transactions List */}
+                        <div>
+                            <h3 className="text-lg font-bold text-white mb-4">Historique des Transactions</h3>
+                            {selectedCaisse.transactions && selectedCaisse.transactions.length > 0 ? (
+                                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                                    {selectedCaisse.transactions.map((transaction) => (
+                                        <div key={transaction.id} className="bg-white/5 p-4 rounded-lg border border-white/10 hover:border-white/20 transition-colors">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="flex-1">
+                                                    <p className="text-white font-medium">{transaction.description}</p>
+                                                    <p className="text-xs text-slate-400 mt-1">
+                                                        {format(new Date(transaction.date), 'dd/MM/yyyy HH:mm')}
+                                                    </p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className={`badge ${
+                                                        transaction.type === 'REVENUE' ? 'badge-success' :
+                                                        transaction.type === 'ACHAT' ? 'badge-error' :
+                                                        transaction.type === 'CHARGE' ? 'badge-warning' :
+                                                        'badge-info'
+                                                    }`}>
+                                                        {transaction.type}
+                                                    </span>
+                                                    <p className={`text-lg font-bold mt-1 ${
+                                                        transaction.type === 'REVENUE' ? 'text-emerald-400' : 'text-rose-400'
+                                                    }`}>
+                                                        {transaction.type === 'REVENUE' ? '+' : '-'}{transaction.amount.toLocaleString()} DH
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {transaction.user && (
+                                                <p className="text-xs text-slate-500">
+                                                    Par: {transaction.user.name}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-slate-400">
+                                    <p>Aucune transaction trouvée</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 )}
             </Modal>
         </>

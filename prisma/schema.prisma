@@ -134,6 +134,23 @@ enum TransactionType {
   ACHAT
   CHARGE
   TRANSFER
+  VENTE
+}
+
+model Vente {
+  id          String   @id @default(cuid())
+  description String
+  amount      Float
+  quantity    Float    @default(1)
+  unitPrice   Float
+  category    String?  // Optional category
+  date        DateTime @default(now())
+  reference   String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  transactions Transaction[]
 }
 
 model Transaction {
@@ -152,6 +169,9 @@ model Transaction {
   
   chargeId    String?
   charge      Charge?         @relation(fields: [chargeId], references: [id])
+  
+  venteId     String?
+  vente       Vente?          @relation(fields: [venteId], references: [id])
   
   clientPaymentId String?
   clientPayment   ClientPayment? @relation(fields: [clientPaymentId], references: [id])
