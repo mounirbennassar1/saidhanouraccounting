@@ -164,16 +164,18 @@ export function CaissesTable() {
                                     </td>
                                     <td className="table-cell text-slate-400 max-w-xs truncate">{caisse.description || '-'}</td>
                                     <td className="table-cell">
-                                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center justify-center gap-2">
                                             <button 
                                                 onClick={() => handleEdit(caisse)}
                                                 className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+                                                title="Modifier"
                                             >
                                                 <Edit className="w-4 h-4" />
                                             </button>
                                             <button 
                                                 onClick={() => handleDelete(caisse.id)}
                                                 className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                                                title="Supprimer"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -370,16 +372,18 @@ export function AchatsTable() {
                                     </td>
                                     <td className="table-cell text-slate-400 font-mono text-xs">{achat.reference || '-'}</td>
                                     <td className="table-cell">
-                                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center justify-center gap-2">
                                             <button 
                                                 onClick={() => handleEdit(achat)}
                                                 className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+                                                title="Modifier"
                                             >
                                                 <Edit className="w-4 h-4" />
                                             </button>
                                             <button 
                                                 onClick={() => handleDelete(achat.id)}
                                                 className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                                                title="Supprimer"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -610,16 +614,18 @@ export function ChargesTable() {
                                     </td>
                                     <td className="table-cell text-slate-400 font-mono text-xs">{charge.reference || '-'}</td>
                                     <td className="table-cell">
-                                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center justify-center gap-2">
                                             <button 
                                                 onClick={() => handleEdit(charge)}
                                                 className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+                                                title="Modifier"
                                             >
                                                 <Edit className="w-4 h-4" />
                                             </button>
                                             <button 
                                                 onClick={() => handleDelete(charge.id)}
                                                 className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                                                title="Supprimer"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>

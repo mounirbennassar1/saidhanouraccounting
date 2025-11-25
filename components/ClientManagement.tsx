@@ -278,7 +278,7 @@ export default function ClientManagement() {
                                         )}
                                     </td>
                                     <td className="table-cell">
-                                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center justify-center gap-2">
                                             <button
                                                 onClick={() => {
                                                     setSelectedClient(client)
