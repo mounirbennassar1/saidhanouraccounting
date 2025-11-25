@@ -151,42 +151,67 @@ export default function Reports() {
       </div>
 
       {/* Date Range Selector */}
-      <div className="glass-card p-6 mb-6">
+      <div className="card p-6 mb-6 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border-indigo-500/20">
+        <div className="flex items-center gap-2 mb-6">
+          <Calendar className="w-5 h-5 text-indigo-400" />
+          <h3 className="text-lg font-bold text-white">Période du Rapport</h3>
+        </div>
         <div className="flex flex-col md:flex-row gap-4 items-end">
           <div className="flex-1">
-            <label className="block text-sm font-medium mb-2 text-white">Date de début</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="input-primary w-full"
-            />
+            <label className="block text-sm font-semibold mb-2 text-slate-300 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+              Date de début
+            </label>
+            <div className="relative">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-4 py-3 bg-[#0B0F19] border border-white/10 rounded-xl text-white 
+                         hover:border-indigo-500/50 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 
+                         transition-all outline-none text-sm font-medium
+                         [color-scheme:dark]"
+              />
+            </div>
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-medium mb-2 text-white">Date de fin</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="input-primary w-full"
-            />
+            <label className="block text-sm font-semibold mb-2 text-slate-300 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+              Date de fin
+            </label>
+            <div className="relative">
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-4 py-3 bg-[#0B0F19] border border-white/10 rounded-xl text-white 
+                         hover:border-purple-500/50 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 
+                         transition-all outline-none text-sm font-medium
+                         [color-scheme:dark]"
+              />
+            </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <button
               onClick={handleGenerateReport}
               disabled={loading}
-              className="btn-primary flex items-center gap-2"
+              className="btn btn-primary bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/25 
+                       px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 
+                       disabled:opacity-50 disabled:cursor-not-allowed transition-all
+                       hover:scale-[1.02] active:scale-[0.98]"
             >
-              <Calendar className="w-4 h-4" />
-              {loading ? 'Chargement...' : 'Générer'}
+              <Calendar className="w-5 h-5" />
+              <span>{loading ? 'Chargement...' : 'Générer'}</span>
             </button>
             {reportData && (
               <button
                 onClick={exportToCSV}
-                className="btn-secondary flex items-center gap-2"
+                className="btn btn-secondary bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-500/25
+                         px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2
+                         transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
-                <Download className="w-4 h-4" />
-                Exporter CSV
+                <Download className="w-5 h-5" />
+                <span>Exporter CSV</span>
               </button>
             )}
           </div>
