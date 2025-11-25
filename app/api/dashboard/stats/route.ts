@@ -31,7 +31,7 @@ export async function GET() {
                 }
             }
         })
-        const totalAchats = achats.reduce((sum, achat) => sum + achat.amount, 0)
+        const totalAchats = achats.reduce((sum: number, achat: any) => sum + achat.amount, 0)
 
         // Get total charges with transactions
         const charges = await prisma.charge.findMany({
@@ -43,22 +43,22 @@ export async function GET() {
                 }
             }
         })
-        const totalCharges = charges.reduce((sum, charge) => sum + charge.amount, 0)
-        const paidCharges = charges.filter(c => c.isPaid).reduce((sum, charge) => sum + charge.amount, 0)
-        const unpaidCharges = charges.filter(c => !c.isPaid).reduce((sum, charge) => sum + charge.amount, 0)
+        const totalCharges = charges.reduce((sum: number, charge: any) => sum + charge.amount, 0)
+        const paidCharges = charges.filter((c: any) => c.isPaid).reduce((sum: number, charge: any) => sum + charge.amount, 0)
+        const unpaidCharges = charges.filter((c: any) => !c.isPaid).reduce((sum: number, charge: any) => sum + charge.amount, 0)
 
         // Calculate total caisse balance
-        const totalCaisseBalance = caisses.reduce((sum, caisse) => sum + caisse.balance, 0)
+        const totalCaisseBalance = caisses.reduce((sum: number, caisse: any) => sum + caisse.balance, 0)
 
         // Calculate spent amounts per caisse
-        const caisseDetails = caisses.map(caisse => {
-            const achatTransactions = caisse.transactions.filter(t => t.type === 'ACHAT')
-            const chargeTransactions = caisse.transactions.filter(t => t.type === 'CHARGE')
-            const revenueTransactions = caisse.transactions.filter(t => t.type === 'REVENUE')
+        const caisseDetails = caisses.map((caisse: any) => {
+            const achatTransactions = caisse.transactions.filter((t: any) => t.type === 'ACHAT')
+            const chargeTransactions = caisse.transactions.filter((t: any) => t.type === 'CHARGE')
+            const revenueTransactions = caisse.transactions.filter((t: any) => t.type === 'REVENUE')
             
-            const totalAchatsFromCaisse = achatTransactions.reduce((sum, t) => sum + t.amount, 0)
-            const totalChargesFromCaisse = chargeTransactions.reduce((sum, t) => sum + t.amount, 0)
-            const totalRevenue = revenueTransactions.reduce((sum, t) => sum + t.amount, 0)
+            const totalAchatsFromCaisse = achatTransactions.reduce((sum: number, t: any) => sum + t.amount, 0)
+            const totalChargesFromCaisse = chargeTransactions.reduce((sum: number, t: any) => sum + t.amount, 0)
+            const totalRevenue = revenueTransactions.reduce((sum: number, t: any) => sum + t.amount, 0)
             const totalSpent = totalAchatsFromCaisse + totalChargesFromCaisse
 
             return {
@@ -93,13 +93,13 @@ export async function GET() {
         })
 
         // Calculate achats by category and by caisse
-        const achatsByCategory = achats.reduce((acc, achat) => {
+        const achatsByCategory = achats.reduce((acc: Record<string, number>, achat: any) => {
             acc[achat.category] = (acc[achat.category] || 0) + achat.amount
             return acc
         }, {} as Record<string, number>)
 
-        const achatsByCaisse = achats.reduce((acc, achat) => {
-            achat.transactions.forEach(t => {
+        const achatsByCaisse = achats.reduce((acc: Record<string, number>, achat: any) => {
+            achat.transactions.forEach((t: any) => {
                 if (t.caisse) {
                     acc[t.caisse.name] = (acc[t.caisse.name] || 0) + t.amount
                 }
@@ -108,13 +108,13 @@ export async function GET() {
         }, {} as Record<string, number>)
 
         // Calculate charges by category and by caisse
-        const chargesByCategory = charges.reduce((acc, charge) => {
+        const chargesByCategory = charges.reduce((acc: Record<string, number>, charge: any) => {
             acc[charge.category] = (acc[charge.category] || 0) + charge.amount
             return acc
         }, {} as Record<string, number>)
 
-        const chargesByCaisse = charges.filter(c => c.isPaid).reduce((acc, charge) => {
-            charge.transactions.forEach(t => {
+        const chargesByCaisse = charges.filter((c: any) => c.isPaid).reduce((acc: Record<string, number>, charge: any) => {
+            charge.transactions.forEach((t: any) => {
                 if (t.caisse) {
                     acc[t.caisse.name] = (acc[t.caisse.name] || 0) + t.amount
                 }
@@ -123,11 +123,11 @@ export async function GET() {
         }, {} as Record<string, number>)
 
         // Calculate initial capital (what caisses started with)
-        const initialCapital = caisses.reduce((sum, caisse) => {
+        const initialCapital = caisses.reduce((sum: number, caisse: any) => {
             // Current balance + total spent - total revenue = initial amount
             const transactions = caisse.transactions
-            const totalOut = transactions.filter(t => t.type === 'ACHAT' || t.type === 'CHARGE').reduce((s, t) => s + t.amount, 0)
-            const totalIn = transactions.filter(t => t.type === 'REVENUE').reduce((s, t) => s + t.amount, 0)
+            const totalOut = transactions.filter((t: any) => t.type === 'ACHAT' || t.type === 'CHARGE').reduce((s: number, t: any) => s + t.amount, 0)
+            const totalIn = transactions.filter((t: any) => t.type === 'REVENUE').reduce((s: number, t: any) => s + t.amount, 0)
             return sum + caisse.balance + totalOut - totalIn
         }, 0)
 
@@ -136,8 +136,8 @@ export async function GET() {
 
         // Calculate cash flow
         const totalRevenue = recentTransactions
-            .filter(t => t.type === 'REVENUE')
-            .reduce((sum, t) => sum + t.amount, 0)
+            .filter((t: any) => t.type === 'REVENUE')
+            .reduce((sum: number, t: any) => sum + t.amount, 0)
         
         const cashFlow = {
             inflow: totalRevenue,
@@ -158,15 +158,15 @@ export async function GET() {
         })
 
         const totalClients = clients.length
-        const totalClientRevenue = clients.reduce((sum, client) => {
-            return sum + client.orders.reduce((orderSum, order) => orderSum + order.paidAmount, 0)
+        const totalClientRevenue = clients.reduce((sum: number, client: any) => {
+            return sum + client.orders.reduce((orderSum: number, order: any) => orderSum + order.paidAmount, 0)
         }, 0)
-        const totalOutstandingBalance = clients.reduce((sum, client) => {
-            return sum + client.orders.reduce((orderSum, order) => orderSum + order.remainingAmount, 0)
+        const totalOutstandingBalance = clients.reduce((sum: number, client: any) => {
+            return sum + client.orders.reduce((orderSum: number, order: any) => orderSum + order.remainingAmount, 0)
         }, 0)
 
-        const clientsWithDebt = clients.filter(client => {
-            const totalDebt = client.orders.reduce((sum, order) => sum + order.remainingAmount, 0)
+        const clientsWithDebt = clients.filter((client: any) => {
+            const totalDebt = client.orders.reduce((sum: number, order: any) => sum + order.remainingAmount, 0)
             return totalDebt > 0
         }).length
 

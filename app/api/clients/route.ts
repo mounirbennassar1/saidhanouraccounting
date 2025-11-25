@@ -27,10 +27,10 @@ export async function GET() {
         })
 
         // Calculate totals for each client
-        const clientsWithStats = clients.map(client => {
+        const clientsWithStats = clients.map((client: any) => {
             const totalOrders = client.orders.length
-            const totalRevenue = client.orders.reduce((sum, order) => sum + order.paidAmount, 0)
-            const totalOutstanding = client.orders.reduce((sum, order) => sum + order.remainingAmount, 0)
+            const totalRevenue = client.orders.reduce((sum: number, order: any) => sum + order.paidAmount, 0)
+            const totalOutstanding = client.orders.reduce((sum: number, order: any) => sum + order.remainingAmount, 0)
 
             return {
                 ...client,
