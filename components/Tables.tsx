@@ -99,6 +99,7 @@ export function CaissesTable() {
                     id: editingCaisse.id,
                     name: formData.get('name'),
                     type: formData.get('type'),
+                    balance: formData.get('balance') ? parseFloat(formData.get('balance') as string) : 0,
                     fixedAmount: formData.get('fixedAmount') ? parseFloat(formData.get('fixedAmount') as string) : null,
                     description: formData.get('description')
                 })
@@ -225,6 +226,18 @@ export function CaissesTable() {
                                 <option value="EVENEMENTS">Événements</option>
                                 <option value="DEPOT">Dépôt</option>
                             </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Solde Initial (DH)</label>
+                            <input
+                                type="number"
+                                name="balance"
+                                defaultValue={editingCaisse.balance}
+                                step="0.01"
+                                className="input"
+                                placeholder="0.00"
+                            />
                         </div>
 
                         <div>

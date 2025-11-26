@@ -61,7 +61,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         const body = await request.json()
-        const { id, name, type, fixedAmount, description } = body
+        const { id, name, type, balance, fixedAmount, description } = body
 
         if (!id) {
             return NextResponse.json({ error: "ID is required" }, { status: 400 })
@@ -72,6 +72,7 @@ export async function PATCH(request: NextRequest) {
             data: {
                 name,
                 type,
+                balance: balance !== undefined ? parseFloat(balance) : undefined,
                 fixedAmount,
                 description
             }
