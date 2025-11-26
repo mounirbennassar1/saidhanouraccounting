@@ -48,16 +48,9 @@ export default function VentesManagement() {
             if (response.ok) {
                 const data = await response.json()
                 setVentes(data)
-                setError(null)
-            } else if (response.status === 503) {
-                const data = await response.json()
-                setError(data.message || 'Database not initialized')
-            } else {
-                setError('Erreur lors du chargement des ventes')
             }
         } catch (error) {
             console.error('Error fetching ventes:', error)
-            setError('Erreur de connexion au serveur')
         } finally {
             setLoading(false)
         }
@@ -190,36 +183,6 @@ export default function VentesManagement() {
 
     return (
         <div className="animate-fade-in space-y-6">
-            {/* Database Error Banner */}
-            {error && error.includes('existe pas') && (
-                <div className="bg-gradient-to-r from-amber-500/10 to-red-500/10 border border-amber-500/30 rounded-xl p-6 shadow-lg">
-                    <div className="flex items-start gap-4">
-                        <div className="bg-amber-500/20 p-3 rounded-lg">
-                            <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-amber-400 mb-2">
-                                🔧 Base de données non initialisée
-                            </h3>
-                            <p className="text-slate-300 mb-4">
-                                {error}
-                            </p>
-                            <a 
-                                href="/setup" 
-                                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-                            >
-                                <span>🔧 Exécuter la Configuration</span>
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            )}
-            
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>

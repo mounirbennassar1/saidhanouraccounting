@@ -26,23 +26,9 @@ export async function GET() {
         })
 
         return NextResponse.json(ventes)
-    } catch (error: any) {
+    } catch (error) {
         console.error("Error fetching ventes:", error)
-        
-        // Check if error is related to missing table
-        if (error.code === 'P2021' || error.message?.includes('does not exist') || error.message?.includes('Table')) {
-            return NextResponse.json({ 
-                error: "Database not initialized",
-                message: "La table Vente n'existe pas. Veuillez exécuter la migration.",
-                setupUrl: "/setup",
-                migrationUrl: "/api/migrate-ventes"
-            }, { status: 503 })
-        }
-        
-        return NextResponse.json({ 
-            error: "Internal server error",
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined
-        }, { status: 500 })
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }
 
