@@ -23,38 +23,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
             async authorize(credentials) {
                 try {
-                    if (!credentials?.email || !credentials?.password) {
+                if (!credentials?.email || !credentials?.password) {
                         console.error('Missing credentials')
-                        return null
+                    return null
+                }
+
+                const user = await prisma.user.findUnique({
+                    where: {
+                        email: credentials.email as string
                     }
+                })
 
-                    const user = await prisma.user.findUnique({
-                        where: {
-                            email: credentials.email as string
-                        }
-                    })
-
-                    if (!user || !user.password) {
+                if (!user || !user.password) {
                         console.error('User not found or no password')
-                        return null
-                    }
+                    return null
+                }
 
-                    const isPasswordValid = await bcrypt.compare(
-                        credentials.password as string,
-                        user.password
-                    )
+                const isPasswordValid = await bcrypt.compare(
+                    credentials.password as string,
+                    user.password
+                )
 
-                    if (!isPasswordValid) {
+                if (!isPasswordValid) {
                         console.error('Invalid password')
-                        return null
-                    }
+                    return null
+                }
 
                     console.log('User authenticated successfully:', user.email)
-                    return {
-                        id: user.id,
-                        email: user.email,
-                        name: user.name,
-                        role: user.role,
+                return {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
                     }
                 } catch (error) {
                     console.error('Authorization error:', error)

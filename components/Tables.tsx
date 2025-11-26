@@ -138,39 +138,39 @@ export function CaissesTable() {
 
     return (
         <>
-            <div className="card overflow-hidden border-0">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr>
-                                <th className="table-header text-left">Nom de la Caisse</th>
-                                <th className="table-header text-left">Type</th>
-                                <th className="table-header text-right">Solde Actuel</th>
-                                <th className="table-header text-right">Montant Fixe</th>
-                                <th className="table-header text-left">Description</th>
-                                <th className="table-header text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {caisses.map((caisse) => (
-                                <tr key={caisse.id} className="table-row group">
-                                    <td className="table-cell font-medium text-white">{caisse.name}</td>
-                                    <td className="table-cell">
-                                        <span className={`badge ${caisse.type === 'MAGASIN' ? 'badge-success' :
-                                                caisse.type === 'EVENEMENTS' ? 'badge-info' :
-                                                    'badge-warning'
-                                            }`}>
-                                            {caisse.type}
-                                        </span>
-                                    </td>
-                                    <td className="table-cell text-right font-bold text-white tracking-tight">
-                                        {caisse.balance.toLocaleString()} <span className="text-slate-500 text-xs font-normal">DH</span>
-                                    </td>
-                                    <td className="table-cell text-right text-slate-400">
-                                        {caisse.fixedAmount ? `${caisse.fixedAmount.toLocaleString()} DH` : '-'}
-                                    </td>
-                                    <td className="table-cell text-slate-400 max-w-xs truncate">{caisse.description || '-'}</td>
-                                    <td className="table-cell">
+        <div className="card overflow-hidden border-0">
+            <div className="overflow-x-auto">
+                <table className="w-full">
+                    <thead>
+                        <tr>
+                            <th className="table-header text-left">Nom de la Caisse</th>
+                            <th className="table-header text-left">Type</th>
+                            <th className="table-header text-right">Solde Actuel</th>
+                            <th className="table-header text-right">Montant Fixe</th>
+                            <th className="table-header text-left">Description</th>
+                            <th className="table-header text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {caisses.map((caisse) => (
+                            <tr key={caisse.id} className="table-row group">
+                                <td className="table-cell font-medium text-white">{caisse.name}</td>
+                                <td className="table-cell">
+                                    <span className={`badge ${caisse.type === 'MAGASIN' ? 'badge-success' :
+                                            caisse.type === 'EVENEMENTS' ? 'badge-info' :
+                                                'badge-warning'
+                                        }`}>
+                                        {caisse.type}
+                                    </span>
+                                </td>
+                                <td className="table-cell text-right font-bold text-white tracking-tight">
+                                    {caisse.balance.toLocaleString()} <span className="text-slate-500 text-xs font-normal">DH</span>
+                                </td>
+                                <td className="table-cell text-right text-slate-400">
+                                    {caisse.fixedAmount ? `${caisse.fixedAmount.toLocaleString()} DH` : '-'}
+                                </td>
+                                <td className="table-cell text-slate-400 max-w-xs truncate">{caisse.description || '-'}</td>
+                                <td className="table-cell">
                                         <div className="flex items-center justify-center gap-2">
                                             <button 
                                                 onClick={() => handleDetails(caisse)}
@@ -184,23 +184,23 @@ export function CaissesTable() {
                                                 className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
                                                 title="Modifier"
                                             >
-                                                <Edit className="w-4 h-4" />
-                                            </button>
+                                            <Edit className="w-4 h-4" />
+                                        </button>
                                             <button 
                                                 onClick={() => handleDelete(caisse.id)}
                                                 className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
                                                 title="Supprimer"
                                             >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
+        </div>
 
             {/* Edit Modal */}
             <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Modifier la Caisse">
@@ -440,57 +440,57 @@ export function AchatsTable() {
 
     return (
         <>
-            <div className="card overflow-hidden border-0">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr>
-                                <th className="table-header text-left">Date</th>
-                                <th className="table-header text-left">Description</th>
-                                <th className="table-header text-left">Catégorie</th>
-                                <th className="table-header text-right">Montant</th>
-                                <th className="table-header text-left">Référence</th>
-                                <th className="table-header text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {achats.map((achat) => (
-                                <tr key={achat.id} className="table-row group">
-                                    <td className="table-cell text-slate-400 text-sm">
-                                        {format(new Date(achat.date), 'dd MMM yyyy')}
-                                    </td>
-                                    <td className="table-cell font-medium text-white">{achat.description}</td>
-                                    <td className="table-cell">
-                                        <span className="badge badge-info">{achat.category}</span>
-                                    </td>
-                                    <td className="table-cell text-right font-bold text-rose-400 tracking-tight">
-                                        -{achat.amount.toLocaleString()} <span className="text-rose-400/50 text-xs font-normal">DH</span>
-                                    </td>
-                                    <td className="table-cell text-slate-400 font-mono text-xs">{achat.reference || '-'}</td>
-                                    <td className="table-cell">
+        <div className="card overflow-hidden border-0">
+            <div className="overflow-x-auto">
+                <table className="w-full">
+                    <thead>
+                        <tr>
+                            <th className="table-header text-left">Date</th>
+                            <th className="table-header text-left">Description</th>
+                            <th className="table-header text-left">Catégorie</th>
+                            <th className="table-header text-right">Montant</th>
+                            <th className="table-header text-left">Référence</th>
+                            <th className="table-header text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {achats.map((achat) => (
+                            <tr key={achat.id} className="table-row group">
+                                <td className="table-cell text-slate-400 text-sm">
+                                    {format(new Date(achat.date), 'dd MMM yyyy')}
+                                </td>
+                                <td className="table-cell font-medium text-white">{achat.description}</td>
+                                <td className="table-cell">
+                                    <span className="badge badge-info">{achat.category}</span>
+                                </td>
+                                <td className="table-cell text-right font-bold text-rose-400 tracking-tight">
+                                    -{achat.amount.toLocaleString()} <span className="text-rose-400/50 text-xs font-normal">DH</span>
+                                </td>
+                                <td className="table-cell text-slate-400 font-mono text-xs">{achat.reference || '-'}</td>
+                                <td className="table-cell">
                                         <div className="flex items-center justify-center gap-2">
                                             <button 
                                                 onClick={() => handleEdit(achat)}
                                                 className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
                                                 title="Modifier"
                                             >
-                                                <Edit className="w-4 h-4" />
-                                            </button>
+                                            <Edit className="w-4 h-4" />
+                                        </button>
                                             <button 
                                                 onClick={() => handleDelete(achat.id)}
                                                 className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
                                                 title="Supprimer"
                                             >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
+        </div>
 
             {/* Edit Modal */}
             <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Modifier l'Achat">
@@ -711,7 +711,7 @@ export function ChargesTable() {
                                     <td className="table-cell text-slate-400 font-mono text-xs">{charge.reference || '-'}</td>
                                     <td className="table-cell">
                                         <div className="flex items-center justify-center gap-2">
-                                            <button 
+                                                <button 
                                                 onClick={() => handleEdit(charge)}
                                                 className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
                                                 title="Modifier"
@@ -749,7 +749,7 @@ export function ChargesTable() {
                                 placeholder="Description de la charge"
                             />
                         </div>
-
+                        
                         <div>
                             <label className="block text-sm font-medium mb-2">Montant (DH)</label>
                             <input
@@ -762,16 +762,16 @@ export function ChargesTable() {
                                 className="input"
                                 placeholder="0.00"
                             />
-                        </div>
-
-                        <div>
+                                </div>
+                            
+                            <div>
                             <label className="block text-sm font-medium mb-2">Catégorie</label>
                             <select name="category" defaultValue={editingCharge.category} required className="input">
                                 {categories.map(cat => (
                                     <option key={cat} value={cat}>{cat}</option>
-                                ))}
-                            </select>
-                        </div>
+                                    ))}
+                                </select>
+                            </div>
 
                         <div>
                             <label className="block text-sm font-medium mb-2">Référence</label>
@@ -807,15 +807,15 @@ export function ChargesTable() {
                             </label>
                         </div>
 
-                        <div className="flex gap-3 pt-4">
-                            <button
-                                type="button"
+                            <div className="flex gap-3 pt-4">
+                                <button 
+                                    type="button" 
                                 onClick={() => setShowEditModal(false)}
                                 className="btn-secondary flex-1"
                                 disabled={submitting}
-                            >
-                                Annuler
-                            </button>
+                                >
+                                    Annuler
+                                </button>
                             <button
                                 type="submit"
                                 className="btn-primary flex-1"
@@ -823,9 +823,9 @@ export function ChargesTable() {
                             >
                                 {submitting ? 'Modification...' : 'Modifier'}
                             </button>
-                        </div>
-                    </form>
-                )}
+                            </div>
+                        </form>
+            )}
             </Modal>
         </>
     )
