@@ -6,6 +6,14 @@ export async function POST() {
     try {
         console.log('🔄 Starting database cleanup - keeping users...')
 
+        // Check if Vente table exists (debugging)
+        try {
+            const venteCount = await prisma.vente.count()
+            console.log('✅ Vente table exists with', venteCount, 'records')
+        } catch (error) {
+            console.error('⚠️ Vente table might not exist yet:', error)
+        }
+
         // Delete ONLY transactional data, keep users
         await prisma.transaction.deleteMany()
         await prisma.clientPayment.deleteMany()
@@ -18,6 +26,14 @@ export async function POST() {
         await prisma.supplier.deleteMany()
         await prisma.achat.deleteMany()
         await prisma.charge.deleteMany()
+        
+        // Try to delete ventes
+        try {
+            await prisma.vente.deleteMany()
+            console.log('✅ Deleted ventes')
+        } catch (error) {
+            console.error('⚠️ Could not delete ventes (table might not exist):', error)
+        }
         
         console.log('🧹 Deleted all transactional data')
 
