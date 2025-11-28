@@ -151,7 +151,12 @@ export default function VentesManagement() {
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Êtes-vous sûr de vouloir supprimer cette vente? Le solde de la caisse sera ajusté.')) return
+        const vente = ventes.find(v => v.id === id)
+        const message = vente?.clientOrderId 
+            ? 'Cette vente est liée à une commande client. Êtes-vous sûr de vouloir la supprimer? Le solde de la caisse sera ajusté.'
+            : 'Êtes-vous sûr de vouloir supprimer cette vente? Le solde de la caisse sera ajusté.'
+        
+        if (!confirm(message)) return
 
         try {
             const response = await fetch(`/api/ventes?id=${id}`, {
@@ -161,9 +166,13 @@ export default function VentesManagement() {
             if (response.ok) {
                 fetchVentes()
                 fetchCaisses()
+            } else {
+                const data = await response.json()
+                alert(data.error || 'Erreur lors de la suppression')
             }
         } catch (error) {
             console.error('Error deleting vente:', error)
+            alert('Erreur de connexion au serveur')
         }
     }
 
@@ -301,28 +310,22 @@ export default function VentesManagement() {
                                         </td>
                                         <td className="table-cell">
                                             <div className="flex items-center justify-center gap-2">
-                                                {vente.clientOrderId ? (
-                                                    <span className="text-xs text-slate-500 italic">
-                                                        Lié à commande
-                                                    </span>
-                                                ) : (
-                                                    <>
-                                                        <button 
-                                                            onClick={() => handleEdit(vente)}
-                                                            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
-                                                            title="Modifier"
-                                                        >
-                                                            <Edit className="w-4 h-4" />
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => handleDelete(vente.id)}
-                                                            className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
-                                                            title="Supprimer"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </>
+                                                {!vente.clientOrderId && (
+                                                    <button 
+                                                        onClick={() => handleEdit(vente)}
+                                                        className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+                                                        title="Modifier"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
                                                 )}
+                                                <button 
+                                                    onClick={() => handleDelete(vente.id)}
+                                                    className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                                                    title="Supprimer"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>

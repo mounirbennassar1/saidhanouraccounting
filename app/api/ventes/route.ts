@@ -167,11 +167,12 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ error: "Vente not found" }, { status: 404 })
         }
 
-        // Prevent deletion of ventes linked to client orders
+        // If vente is linked to a client order, unlink it first
         if (vente.clientOrderId) {
-            return NextResponse.json({ 
-                error: "Cette vente est liée à une commande client et ne peut pas être supprimée directement" 
-            }, { status: 400 })
+            await prisma.vente.update({
+                where: { id },
+                data: { clientOrderId: null }
+            })
         }
 
         // Reverse caisse balance changes

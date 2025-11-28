@@ -134,31 +134,78 @@ export async function DELETE(request: NextRequest) {
             )
         }
 
-        // Check if client has orders
-        const ordersCount = await prisma.clientOrder.count({
-            where: { clientId }
+        // Get all client orders with their ventes
+        const orders = await prisma.clientOrder.findMany({
+            where: { clientId },
+            include: {
+                vente: {
+                    include: {
+                        transactions: true
+                    }
+                },
+                payments: {
+                    include: {
+                        transactions: true
+                    }
+                },
+                items: true
+            }
         })
 
-        if (ordersCount > 0) {
-            // Soft delete
-            await prisma.client.update({
-                where: { id: clientId },
-                data: { isActive: false }
+        // For each order, delete related ventes and reverse caisse balances
+        for (const order of orders) {
+            if (order.vente) {
+                // Reverse caisse balance for vente transactions
+                for (const transaction of order.vente.transactions) {
+                    if (transaction.caisseId) {
+                        await prisma.caisse.update({
+                            where: { id: transaction.caisseId },
+                            data: {
+                                balance: {
+                                    decrement: order.vente.amount
+                                }
+                            }
+                        })
+                    }
+                }
+                // Delete vente transactions
+                await prisma.transaction.deleteMany({
+                    where: { venteId: order.vente.id }
+                })
+                // Delete the vente
+                await prisma.vente.delete({
+                    where: { id: order.vente.id }
+                })
+            }
+
+            // Delete payment transactions and payments
+            for (const payment of order.payments) {
+                await prisma.transaction.deleteMany({
+                    where: { clientPaymentId: payment.id }
+                })
+            }
+            await prisma.clientPayment.deleteMany({
+                where: { orderId: order.id }
             })
 
-            return NextResponse.json({
-                message: "Client désactivé car il a des commandes existantes",
-                soft_delete: true
+            // Delete order items
+            await prisma.orderItem.deleteMany({
+                where: { orderId: order.id }
             })
         }
 
-        // Hard delete
+        // Delete all orders
+        await prisma.clientOrder.deleteMany({
+            where: { clientId }
+        })
+
+        // Hard delete the client
         await prisma.client.delete({
             where: { id: clientId }
         })
 
         return NextResponse.json({
-            message: "Client supprimé avec succès",
+            message: "Client et toutes ses données supprimés avec succès",
             soft_delete: false
         })
     } catch (error) {

@@ -69,3 +69,4 @@ UPDATE "Caisse" SET balance = 0, "fixedAmount" = 0;
 
 
 
+
