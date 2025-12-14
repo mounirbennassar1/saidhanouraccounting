@@ -19,12 +19,12 @@ export async function GET(request: Request) {
 
     const start = new Date(startDate)
     start.setHours(0, 0, 0, 0)
-    
+
     const end = new Date(endDate)
     end.setHours(23, 59, 59, 999)
 
     // Fetch all data within date range
-    const [caisses, achats, charges, clientOrders, supplierOrders, transactions] = await Promise.all([
+    const [caisses, achats, charges, clientOrders, supplierOrders, transactions, ventes] = await Promise.all([
       // Get all caisses with transaction count
       prisma.caisse.findMany({
         select: {
@@ -122,13 +122,25 @@ export async function GET(request: Request) {
         },
         orderBy: { date: 'desc' },
       }),
+
+      // Get all ventes
+      prisma.vente.findMany({
+        where: {
+          date: {
+            gte: start,
+            lte: end,
+          },
+        },
+        orderBy: { date: 'desc' },
+      }),
     ])
 
     // Calculate summary
     const totalRevenue = transactions
-      .filter(t => t.type === 'REVENUE')
+      .filter(t => t.type === 'REVENUE' || t.type === 'VENTE')
       .reduce((sum, t) => sum + t.amount, 0)
 
+    const totalVentes = ventes.reduce((sum, v) => sum + v.amount, 0)
     const totalAchats = achats.reduce((sum, a) => sum + a.amount, 0)
     const totalCharges = charges.reduce((sum, c) => sum + c.amount, 0)
 
@@ -142,6 +154,7 @@ export async function GET(request: Request) {
     const reportData = {
       summary: {
         totalRevenue,
+        totalVentes,
         totalExpenses,
         netProfit,
         totalAchats,
@@ -199,6 +212,16 @@ export async function GET(request: Request) {
         description: t.description,
         date: t.date.toISOString(),
         caisseName: t.caisse?.name,
+      })),
+      ventes: ventes.map(v => ({
+        id: v.id,
+        description: v.description,
+        amount: v.amount,
+        quantity: v.quantity,
+        unitPrice: v.unitPrice,
+        category: v.category,
+        date: v.date.toISOString(),
+        reference: v.reference,
       })),
     }
 

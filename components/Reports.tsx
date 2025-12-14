@@ -6,6 +6,7 @@ import { Calendar, Download, FileText, TrendingUp, TrendingDown, DollarSign, Ale
 interface ReportData {
   summary: {
     totalRevenue: number
+    totalVentes: number
     totalExpenses: number
     netProfit: number
     totalAchats: number
@@ -35,6 +36,16 @@ interface ReportData {
     category: string
     date: string
     isPaid: boolean
+  }>
+  ventes: Array<{
+    id: string
+    description: string
+    amount: number
+    quantity: number
+    unitPrice: number
+    category?: string
+    date: string
+    reference?: string
   }>
   clientOrders: Array<{
     id: string
@@ -107,22 +118,29 @@ export default function Reports() {
     if (!reportData) return
 
     let csv = 'Type,Description,Montant,Date,Catégorie,Référence\n'
-    
+
     // Add Achats
     reportData.achats.forEach(achat => {
       csv += `Achat,"${achat.description}",${achat.amount},"${new Date(achat.date).toLocaleDateString('fr-FR')}","${achat.category}","${achat.reference || ''}"\n`
     })
-    
+
     // Add Charges
     reportData.charges.forEach(charge => {
       csv += `Charge,"${charge.description}",${charge.amount},"${new Date(charge.date).toLocaleDateString('fr-FR')}","${charge.category}","${charge.isPaid ? 'Payé' : 'Non payé'}"\n`
     })
-    
+
+    // Add Ventes
+    if (reportData.ventes) {
+      reportData.ventes.forEach(vente => {
+        csv += `Vente,"${vente.description}",${vente.amount},"${new Date(vente.date).toLocaleDateString('fr-FR')}","${vente.category || ''}","${vente.reference || ''}"\n`
+      })
+    }
+
     // Add Client Orders
     reportData.clientOrders.forEach(order => {
       csv += `Commande Client,"${order.clientName} - ${order.orderNumber}",${order.totalAmount},"${new Date(order.orderDate).toLocaleDateString('fr-FR')}","${order.status}","Payé: ${order.paidAmount}"\n`
     })
-    
+
     // Add Supplier Orders
     reportData.supplierOrders.forEach(order => {
       csv += `Commande Fournisseur,"${order.supplierName} - ${order.orderNumber}",${order.totalAmount},"${new Date(order.orderDate).toLocaleDateString('fr-FR')}","${order.status}","Payé: ${order.paidAmount}"\n`
@@ -230,13 +248,21 @@ export default function Reports() {
       {reportData && (
         <>
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             <div className="glass-card p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted">Revenus Total</span>
                 <TrendingUp className="w-5 h-5 text-green-400" />
               </div>
               <p className="text-2xl font-bold text-green-400">{formatCurrency(reportData.summary.totalRevenue)}</p>
+            </div>
+
+            <div className="glass-card p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted">Ventes</span>
+                <TrendingUp className="w-5 h-5 text-emerald-400" />
+              </div>
+              <p className="text-2xl font-bold text-emerald-400">{formatCurrency(reportData.summary.totalVentes)}</p>
             </div>
 
             <div className="glass-card p-6">
@@ -308,21 +334,20 @@ export default function Reports() {
                         {new Date(transaction.date).toLocaleDateString('fr-FR')}
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          transaction.type === 'REVENUE' ? 'bg-green-400/10 text-green-400' :
-                          transaction.type === 'ACHAT' ? 'bg-yellow-400/10 text-yellow-400' :
-                          transaction.type === 'CHARGE' ? 'bg-red-400/10 text-red-400' :
-                          'bg-blue-400/10 text-blue-400'
-                        }`}>
+                        <span className={`text-xs px-2 py-1 rounded ${transaction.type === 'REVENUE' ? 'bg-green-400/10 text-green-400' :
+                            transaction.type === 'VENTE' ? 'bg-emerald-400/10 text-emerald-400' :
+                              transaction.type === 'ACHAT' ? 'bg-yellow-400/10 text-yellow-400' :
+                                transaction.type === 'CHARGE' ? 'bg-red-400/10 text-red-400' :
+                                  'bg-blue-400/10 text-blue-400'
+                          }`}>
                           {transaction.type}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-sm text-slate-300">{transaction.description}</td>
                       <td className="py-3 px-4 text-sm text-slate-400">{transaction.caisseName || '-'}</td>
-                      <td className={`py-3 px-4 text-sm text-right font-semibold ${
-                        transaction.type === 'REVENUE' ? 'text-green-400' : 'text-red-400'
-                      }`}>
-                        {transaction.type === 'REVENUE' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
+                      <td className={`py-3 px-4 text-sm text-right font-semibold ${transaction.type === 'REVENUE' || transaction.type === 'VENTE' ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                        {transaction.type === 'REVENUE' || transaction.type === 'VENTE' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
                       </td>
                     </tr>
                   ))}
@@ -351,6 +376,37 @@ export default function Reports() {
                       </div>
                     </div>
                     <p className="text-lg font-bold text-yellow-400">{formatCurrency(achat.amount)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Ventes List */}
+          {reportData.ventes && reportData.ventes.length > 0 && (
+            <div className="glass-card p-6 mb-6">
+              <h3 className="text-xl font-bold text-white mb-4">Ventes ({reportData.ventes.length})</h3>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {reportData.ventes.map((vente) => (
+                  <div key={vente.id} className="bg-white/5 rounded-lg p-4 border border-white/10 flex justify-between items-center">
+                    <div>
+                      <p className="font-semibold text-white">{vente.description}</p>
+                      <div className="flex gap-3 mt-1">
+                        <span className="text-xs text-muted">
+                          {new Date(vente.date).toLocaleDateString('fr-FR')}
+                        </span>
+                        <span className="text-xs text-emerald-400">
+                          {vente.quantity} × {formatCurrency(vente.unitPrice)}
+                        </span>
+                        {vente.category && (
+                          <span className="text-xs text-cyan-400">{vente.category}</span>
+                        )}
+                        {vente.reference && (
+                          <span className="text-xs text-slate-400">Réf: {vente.reference}</span>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-lg font-bold text-emerald-400">{formatCurrency(vente.amount)}</p>
                   </div>
                 ))}
               </div>
@@ -418,13 +474,12 @@ export default function Reports() {
                           {formatCurrency(order.remainingAmount)}
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            order.status === 'FULLY_PAID' ? 'bg-green-400/10 text-green-400' :
+                          <span className={`text-xs px-2 py-1 rounded ${order.status === 'FULLY_PAID' ? 'bg-green-400/10 text-green-400' :
                             order.status === 'PARTIALLY_PAID' ? 'bg-orange-400/10 text-orange-400' :
-                            order.status === 'CONFIRMED' ? 'bg-blue-400/10 text-blue-400' :
-                            order.status === 'CANCELLED' ? 'bg-red-400/10 text-red-400' :
-                            'bg-slate-400/10 text-slate-400'
-                          }`}>
+                              order.status === 'CONFIRMED' ? 'bg-blue-400/10 text-blue-400' :
+                                order.status === 'CANCELLED' ? 'bg-red-400/10 text-red-400' :
+                                  'bg-slate-400/10 text-slate-400'
+                            }`}>
                             {order.status}
                           </span>
                         </td>
@@ -471,13 +526,12 @@ export default function Reports() {
                           {formatCurrency(order.remainingAmount)}
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            order.status === 'FULLY_PAID' ? 'bg-green-400/10 text-green-400' :
+                          <span className={`text-xs px-2 py-1 rounded ${order.status === 'FULLY_PAID' ? 'bg-green-400/10 text-green-400' :
                             order.status === 'PARTIALLY_PAID' ? 'bg-orange-400/10 text-orange-400' :
-                            order.status === 'CONFIRMED' ? 'bg-blue-400/10 text-blue-400' :
-                            order.status === 'CANCELLED' ? 'bg-red-400/10 text-red-400' :
-                            'bg-slate-400/10 text-slate-400'
-                          }`}>
+                              order.status === 'CONFIRMED' ? 'bg-blue-400/10 text-blue-400' :
+                                order.status === 'CANCELLED' ? 'bg-red-400/10 text-red-400' :
+                                  'bg-slate-400/10 text-slate-400'
+                            }`}>
                             {order.status}
                           </span>
                         </td>
