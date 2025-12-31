@@ -7,6 +7,10 @@ async function main() {
     console.log('🌱 Starting database seeding...')
 
     // Clean up existing data (in correct order due to relations)
+    await prisma.supplierPayment.deleteMany()
+    await prisma.supplierOrder.deleteMany()
+    await prisma.supplier.deleteMany()
+    await prisma.vente.deleteMany()
     await prisma.transaction.deleteMany()
     await prisma.clientPayment.deleteMany()
     await prisma.orderItem.deleteMany()
