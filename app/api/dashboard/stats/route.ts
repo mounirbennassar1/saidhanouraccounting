@@ -125,9 +125,9 @@ export async function GET() {
             return acc
         }, {} as Record<string, number>)
 
-        // Capital Initial = sum of fixedAmount from all caisses
+        // Capital Initial = sum of fixedAmount (or balance if fixedAmount not set) from all caisses
         const initialCapital = caisses.reduce((sum: number, caisse: any) => {
-            return sum + (caisse.fixedAmount || 0)
+            return sum + (caisse.fixedAmount ?? caisse.balance ?? 0)
         }, 0)
 
         // Calculate net balance: current balance - unpaid liabilities
