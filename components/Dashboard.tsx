@@ -110,6 +110,7 @@ export default function Dashboard() {
 
     // Dynamic calculations
     const totalSpent = (stats?.totalAchats || 0) + (stats?.paidCharges || 0)
+    const soldeActuel = (stats?.totalVentes || 0) - (stats?.totalAchats || 0) - (stats?.paidCharges || 0)
     const utilizationRate = stats?.initialCapital ? ((totalSpent / stats.initialCapital) * 100) : 0
     const chargesPaidPercentage = stats?.totalCharges ? ((stats.paidCharges / stats.totalCharges) * 100) : 0
     const liquidityRatio = stats?.unpaidCharges ? (stats.totalCaisseBalance / stats.unpaidCharges) : 0
@@ -163,21 +164,21 @@ export default function Dashboard() {
                     </div>
                     <div>
                         <p className="text-slate-400 text-sm font-medium mb-1">Solde Total Caisse</p>
-                        <h3 className="text-3xl font-bold text-white tracking-tight">
-                            {stats?.totalCaisseBalance.toLocaleString()} <span className="text-lg text-slate-500 font-normal">DH</span>
+                        <h3 className={`text-3xl font-bold tracking-tight ${soldeActuel >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {soldeActuel.toLocaleString()} <span className="text-lg text-slate-500 font-normal">DH</span>
                         </h3>
                         <div className="mt-3 pt-3 border-t border-white/5">
                             <div className="flex justify-between items-center text-xs">
-                                <span className="text-slate-500">Capital Initial</span>
-                                <span className="text-slate-400 font-medium">{stats?.initialCapital.toLocaleString()} DH</span>
-                            </div>
-                            <div className="flex justify-between items-center text-xs mt-1">
                                 <span className="text-slate-500">+ Ventes</span>
-                                <span className="text-emerald-400 font-medium">+{stats?.totalVentes?.toLocaleString() || 0} DH</span>
+                                <span className="text-emerald-400 font-medium">+{(stats?.totalVentes || 0).toLocaleString()} DH</span>
                             </div>
                             <div className="flex justify-between items-center text-xs mt-1">
-                                <span className="text-slate-500">- Achats & Charges</span>
-                                <span className="text-rose-400 font-medium">-{((stats?.totalAchats || 0) + (stats?.paidCharges || 0)).toLocaleString()} DH</span>
+                                <span className="text-slate-500">- Achats</span>
+                                <span className="text-rose-400 font-medium">-{(stats?.totalAchats || 0).toLocaleString()} DH</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs mt-1">
+                                <span className="text-slate-500">- Charges</span>
+                                <span className="text-rose-400 font-medium">-{(stats?.paidCharges || 0).toLocaleString()} DH</span>
                             </div>
                         </div>
                     </div>
