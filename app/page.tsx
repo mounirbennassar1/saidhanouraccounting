@@ -19,6 +19,10 @@ export default function Home() {
     setActiveTab('dashboard')
   }
 
+  const handleDataChange = () => {
+    setRefreshKey(prev => prev + 1)
+  }
+
   return (
     <div className="min-h-screen">
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
@@ -38,7 +42,7 @@ export default function Home() {
               <p className="text-muted">Vue d'ensemble de toutes les caisses</p>
             </div>
             <Forms onSuccess={handleSuccess} hideButtons={['achat', 'charge']} />
-            <CaissesTable key={refreshKey} />
+            <CaissesTable key={refreshKey} onDataChange={handleDataChange} />
           </div>
         )}
 
@@ -49,7 +53,7 @@ export default function Home() {
               <p className="text-muted">Historique de tous les achats</p>
             </div>
             <Forms onSuccess={handleSuccess} hideButtons={['caisse', 'revenue']} />
-            <AchatsTable key={refreshKey} />
+            <AchatsTable key={refreshKey} onDataChange={handleDataChange} />
           </div>
         )}
 
@@ -60,13 +64,13 @@ export default function Home() {
               <p className="text-muted">Suivi de toutes les charges et dépenses</p>
             </div>
             <Forms onSuccess={handleSuccess} hideButtons={['caisse', 'revenue']} />
-            <ChargesTable key={refreshKey} />
+            <ChargesTable key={refreshKey} onDataChange={handleDataChange} />
           </div>
         )}
 
         {activeTab === 'ventes' && (
           <div className="animate-fade-in">
-            <VentesManagement key={refreshKey} />
+            <VentesManagement key={refreshKey} onDataChange={handleDataChange} />
           </div>
         )}
 

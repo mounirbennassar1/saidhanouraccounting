@@ -47,7 +47,7 @@ interface Charge {
     isPaid: boolean
 }
 
-export function CaissesTable() {
+export function CaissesTable({ onDataChange }: { onDataChange?: () => void } = {}) {
     const [caisses, setCaisses] = useState<Caisse[]>([])
     const [loading, setLoading] = useState(true)
     const [showEditModal, setShowEditModal] = useState(false)
@@ -109,6 +109,7 @@ export function CaissesTable() {
                 setShowEditModal(false)
                 setEditingCaisse(null)
                 fetchCaisses()
+                onDataChange?.()
             }
         } catch (error) {
             console.error('Error updating caisse:', error)
@@ -127,6 +128,7 @@ export function CaissesTable() {
 
             if (response.ok) {
                 fetchCaisses()
+                onDataChange?.()
             }
         } catch (error) {
             console.error('Error deleting caisse:', error)
@@ -414,7 +416,7 @@ export function CaissesTable() {
     )
 }
 
-export function AchatsTable() {
+export function AchatsTable({ onDataChange }: { onDataChange?: () => void } = {}) {
     const [achats, setAchats] = useState<Achat[]>([])
     const [loading, setLoading] = useState(true)
     const [showEditModal, setShowEditModal] = useState(false)
@@ -469,6 +471,7 @@ export function AchatsTable() {
                 setShowEditModal(false)
                 setEditingAchat(null)
                 fetchAchats()
+                onDataChange?.()
             }
         } catch (error) {
             console.error('Error updating achat:', error)
@@ -487,6 +490,7 @@ export function AchatsTable() {
 
             if (response.ok) {
                 fetchAchats()
+                onDataChange?.()
             }
         } catch (error) {
             console.error('Error deleting achat:', error)
@@ -667,7 +671,7 @@ export function AchatsTable() {
     )
 }
 
-export function ChargesTable() {
+export function ChargesTable({ onDataChange }: { onDataChange?: () => void } = {}) {
     const [charges, setCharges] = useState<Charge[]>([])
     const [loading, setLoading] = useState(true)
     const [showEditModal, setShowEditModal] = useState(false)
@@ -737,6 +741,7 @@ export function ChargesTable() {
                 setShowEditModal(false)
                 setEditingCharge(null)
                 fetchCharges()
+                onDataChange?.()
             }
         } catch (error) {
             console.error('Error updating charge:', error)
@@ -755,6 +760,7 @@ export function ChargesTable() {
 
             if (response.ok) {
                 fetchCharges()
+                onDataChange?.()
             }
         } catch (error) {
             console.error('Error deleting charge:', error)

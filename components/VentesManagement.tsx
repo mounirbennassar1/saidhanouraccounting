@@ -27,7 +27,7 @@ interface Vente {
     }>
 }
 
-export default function VentesManagement() {
+export default function VentesManagement({ onDataChange }: { onDataChange?: () => void }) {
     const [ventes, setVentes] = useState<Vente[]>([])
     const [caisses, setCaisses] = useState<Caisse[]>([])
     const [loading, setLoading] = useState(true)
@@ -93,6 +93,7 @@ export default function VentesManagement() {
                 setShowAddModal(false)
                 fetchVentes()
                 fetchCaisses()
+                onDataChange?.()
                 e.currentTarget.reset()
             } else {
                 const data = await response.json()
@@ -138,6 +139,7 @@ export default function VentesManagement() {
                 setShowEditModal(false)
                 setEditingVente(null)
                 fetchVentes()
+                onDataChange?.()
             } else {
                 const data = await response.json()
                 setError(data.error || 'Erreur lors de la modification')
@@ -166,6 +168,7 @@ export default function VentesManagement() {
             if (response.ok) {
                 fetchVentes()
                 fetchCaisses()
+                onDataChange?.()
             } else {
                 const data = await response.json()
                 alert(data.error || 'Erreur lors de la suppression')
