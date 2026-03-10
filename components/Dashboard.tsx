@@ -51,6 +51,7 @@ interface DashboardStats {
     initialCapital: number
     totalAchats: number
     totalCharges: number
+    totalVentes: number
     paidCharges: number
     unpaidCharges: number
     netBalance: number
@@ -146,7 +147,7 @@ export default function Dashboard() {
             </div>
 
             {/* Main Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 {/* Total Caisse */}
                 <div className="card p-6 relative overflow-hidden group hover:border-indigo-500/30 transition-all">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -169,6 +170,14 @@ export default function Dashboard() {
                             <div className="flex justify-between items-center text-xs">
                                 <span className="text-slate-500">Capital Initial</span>
                                 <span className="text-slate-400 font-medium">{stats?.initialCapital.toLocaleString()} DH</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs mt-1">
+                                <span className="text-slate-500">+ Ventes</span>
+                                <span className="text-emerald-400 font-medium">+{stats?.totalVentes?.toLocaleString() || 0} DH</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs mt-1">
+                                <span className="text-slate-500">- Achats & Charges</span>
+                                <span className="text-rose-400 font-medium">-{((stats?.totalAchats || 0) + (stats?.paidCharges || 0)).toLocaleString()} DH</span>
                             </div>
                         </div>
                     </div>
@@ -226,6 +235,36 @@ export default function Dashboard() {
                             <div className="flex justify-between items-center text-xs">
                                 <span className="text-slate-500">Payé</span>
                                 <span className="text-emerald-400 font-medium">{stats?.paidCharges.toLocaleString()} DH ({chargesPaidPercentage.toFixed(0)}%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Total Ventes */}
+                <div className="card p-6 relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <ShoppingBag className="w-24 h-24 text-emerald-500" />
+                    </div>
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <ShoppingBag className="w-6 h-6" />
+                        </div>
+                        <span className="text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1">
+                            <ArrowUpRight className="w-3 h-3" />
+                            Entrées
+                        </span>
+                    </div>
+                    <div>
+                        <p className="text-slate-400 text-sm font-medium mb-1">Total Ventes</p>
+                        <h3 className="text-3xl font-bold text-white tracking-tight">
+                            {stats?.totalVentes?.toLocaleString() || 0} <span className="text-lg text-slate-500 font-normal">DH</span>
+                        </h3>
+                        <div className="mt-3 pt-3 border-t border-white/5">
+                            <div className="flex justify-between items-center text-xs">
+                                <span className="text-slate-500">Flux de trésorerie</span>
+                                <span className="text-emerald-400 font-medium">
+                                    {stats?.cashFlow.inflow.toLocaleString()} DH
+                                </span>
                             </div>
                         </div>
                     </div>

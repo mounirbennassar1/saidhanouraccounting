@@ -125,29 +125,32 @@ export async function GET() {
             return acc
         }, {} as Record<string, number>)
 
-        // Calculate initial capital (what caisses started with)
         const initialCapital = caisses.reduce((sum: number, caisse: any) => {
-            // Current balance + total spent - total revenue = initial amount
+            // Current balance + total spent - total revenue - total ventes = initial amount
             const transactions = caisse.transactions
             const totalOut = transactions.filter((t: any) => t.type === 'ACHAT' || t.type === 'CHARGE').reduce((s: number, t: any) => s + t.amount, 0)
-            const totalIn = transactions.filter((t: any) => t.type === 'REVENUE').reduce((s: number, t: any) => s + t.amount, 0)
+            const totalIn = transactions.filter((t: any) => t.type === 'REVENUE' || t.type === 'VENTE').reduce((s: number, t: any) => s + t.amount, 0)
             return sum + caisse.balance + totalOut - totalIn
         }, 0)
 
         // Calculate net balance: current balance - unpaid liabilities
         const netBalance = totalCaisseBalance - unpaidCharges
 
-        // Calculate cash flow (get ALL revenue transactions, not just recent)
-        const allRevenueTransactions = await prisma.transaction.findMany({
-            where: { type: 'REVENUE' }
+        // Calculate cash flow (get ALL revenue + vente transactions)
+        const allInflowTransactions = await prisma.transaction.findMany({
+            where: { type: { in: ['REVENUE', 'VENTE'] } }
         })
         
-        const totalRevenue = allRevenueTransactions.reduce((sum: number, t: any) => sum + t.amount, 0)
+        const totalInflow = allInflowTransactions.reduce((sum: number, t: any) => sum + t.amount, 0)
+
+        // Get total ventes
+        const allVentes = await prisma.vente.findMany()
+        const totalVentes = allVentes.reduce((sum: number, v: any) => sum + v.amount, 0)
         
         const cashFlow = {
-            inflow: totalRevenue,
+            inflow: totalInflow,
             outflow: totalAchats + paidCharges,
-            net: totalRevenue - (totalAchats + paidCharges)
+            net: totalInflow - (totalAchats + paidCharges)
         }
 
         // Get client statistics
@@ -203,6 +206,7 @@ export async function GET() {
             initialCapital,
             totalAchats,
             totalCharges,
+            totalVentes,
             paidCharges,
             unpaidCharges,
             netBalance,
