@@ -228,9 +228,9 @@ export default function VentesManagement({ onDataChange }: { onDataChange?: () =
                 <div className="card p-6 hover:border-emerald-500/30 transition-all">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-slate-400 text-xs font-medium mb-1">Revenu Total</p>
+                            <p className="text-slate-400 text-xs font-medium mb-1">Solde Actuel</p>
                             <h4 className="text-2xl font-bold text-emerald-400">{totalRevenue.toLocaleString()} DH</h4>
-                            <p className="text-xs text-slate-500 mt-1">Toutes les ventes</p>
+                            <p className="text-xs text-slate-500 mt-1">Total actuel des ventes</p>
                         </div>
                         <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                             <TrendingUp className="w-5 h-5" />
