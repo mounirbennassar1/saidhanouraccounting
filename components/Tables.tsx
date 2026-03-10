@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { Trash2, Edit, X, Eye } from 'lucide-react'
+import { Trash2, Edit, X, Eye, Wallet, DollarSign, ShoppingCart, Receipt } from 'lucide-react'
 import Modal from './Modal'
 
 interface Transaction {
@@ -133,12 +133,58 @@ export function CaissesTable() {
         }
     }
 
+    // Dynamic calculations from loaded data
+    const totalBalance = caisses.reduce((sum, c) => sum + c.balance, 0)
+    const totalCapital = caisses.reduce((sum, c) => sum + (c.fixedAmount || c.balance), 0)
+
     if (loading) {
         return <div className="skeleton h-64 w-full rounded-2xl"></div>
     }
 
     return (
         <>
+        {/* Summary Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="card p-6 hover:border-indigo-500/30 transition-all">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-slate-400 text-xs font-medium mb-1">Solde Total Actuel</p>
+                        <h4 className="text-2xl font-bold text-emerald-400">{totalBalance.toLocaleString()} DH</h4>
+                        <p className="text-xs text-slate-500 mt-1">Somme de toutes les caisses</p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <Wallet className="w-5 h-5" />
+                    </div>
+                </div>
+            </div>
+
+            <div className="card p-6 hover:border-indigo-500/30 transition-all">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-slate-400 text-xs font-medium mb-1">Capital Initial</p>
+                        <h4 className="text-2xl font-bold text-white">{totalCapital.toLocaleString()} DH</h4>
+                        <p className="text-xs text-slate-500 mt-1">Montant fixe total</p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                        <DollarSign className="w-5 h-5" />
+                    </div>
+                </div>
+            </div>
+
+            <div className="card p-6 hover:border-indigo-500/30 transition-all">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-slate-400 text-xs font-medium mb-1">Nombre de Caisses</p>
+                        <h4 className="text-2xl font-bold text-white">{caisses.length}</h4>
+                        <p className="text-xs text-slate-500 mt-1">Caisses enregistrées</p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                        <Eye className="w-5 h-5" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div className="card overflow-hidden border-0">
             <div className="overflow-x-auto">
                 <table className="w-full">
@@ -447,12 +493,44 @@ export function AchatsTable() {
         }
     }
 
+    // Dynamic calculations from loaded data
+    const totalMontant = achats.reduce((sum, a) => sum + a.amount, 0)
+
     if (loading) {
         return <div className="skeleton h-64 w-full rounded-2xl"></div>
     }
 
     return (
         <>
+        {/* Summary Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="card p-6 hover:border-pink-500/30 transition-all">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-slate-400 text-xs font-medium mb-1">Nombre d'Achats</p>
+                        <h4 className="text-2xl font-bold text-white">{achats.length}</h4>
+                        <p className="text-xs text-slate-500 mt-1">Achats enregistrés</p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-pink-500/10 text-pink-400 border border-pink-500/20">
+                        <ShoppingCart className="w-5 h-5" />
+                    </div>
+                </div>
+            </div>
+
+            <div className="card p-6 hover:border-rose-500/30 transition-all">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-slate-400 text-xs font-medium mb-1">Montant Total Actuel</p>
+                        <h4 className="text-2xl font-bold text-rose-400">{totalMontant.toLocaleString()} DH</h4>
+                        <p className="text-xs text-slate-500 mt-1">Total des achats</p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                        <DollarSign className="w-5 h-5" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div className="card overflow-hidden border-0">
             <div className="overflow-x-auto">
                 <table className="w-full">
@@ -683,12 +761,59 @@ export function ChargesTable() {
         }
     }
 
+    // Dynamic calculations from loaded data
+    const totalChargesMontant = charges.reduce((sum, c) => sum + c.amount, 0)
+    const totalPaid = charges.filter(c => c.isPaid).reduce((sum, c) => sum + c.amount, 0)
+    const totalUnpaid = charges.filter(c => !c.isPaid).reduce((sum, c) => sum + c.amount, 0)
+
     if (loading) {
         return <div className="skeleton h-64 w-full rounded-2xl"></div>
     }
 
     return (
         <>
+            {/* Summary Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div className="card p-6 hover:border-orange-500/30 transition-all">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-slate-400 text-xs font-medium mb-1">Total Charges Actuel</p>
+                            <h4 className="text-2xl font-bold text-orange-400">{totalChargesMontant.toLocaleString()} DH</h4>
+                            <p className="text-xs text-slate-500 mt-1">{charges.length} charges enregistrées</p>
+                        </div>
+                        <div className="p-3 rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                            <Receipt className="w-5 h-5" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="card p-6 hover:border-emerald-500/30 transition-all">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-slate-400 text-xs font-medium mb-1">Charges Payées</p>
+                            <h4 className="text-2xl font-bold text-emerald-400">{totalPaid.toLocaleString()} DH</h4>
+                            <p className="text-xs text-slate-500 mt-1">{charges.filter(c => c.isPaid).length} payées</p>
+                        </div>
+                        <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <DollarSign className="w-5 h-5" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="card p-6 hover:border-red-500/30 transition-all">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-slate-400 text-xs font-medium mb-1">Charges Non Payées</p>
+                            <h4 className="text-2xl font-bold text-red-400">{totalUnpaid.toLocaleString()} DH</h4>
+                            <p className="text-xs text-slate-500 mt-1">{charges.filter(c => !c.isPaid).length} non payées</p>
+                        </div>
+                        <div className="p-3 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20">
+                            <Receipt className="w-5 h-5" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div className="card overflow-hidden border-0">
                 <div className="overflow-x-auto">
                     <table className="w-full">
