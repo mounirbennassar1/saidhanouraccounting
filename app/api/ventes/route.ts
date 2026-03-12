@@ -157,11 +157,18 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ error: "Vente not found" }, { status: 404 })
         }
 
-        // If vente is linked to a client order, unlink it first
+        // If vente is linked to a client order, unlink it and reset order amounts to 0
         if (vente.clientOrderId) {
             await prisma.vente.update({
                 where: { id },
                 data: { clientOrderId: null }
+            })
+            await prisma.clientOrder.update({
+                where: { id: vente.clientOrderId },
+                data: {
+                    totalAmount: 0,
+                    remainingAmount: 0
+                }
             })
         }
 
