@@ -101,18 +101,6 @@ export async function POST(request: NextRequest) {
             }
         })
 
-        // Update caisse balance if paid and caisseId is provided
-        if (isPaid && caisseId) {
-            await prisma.caisse.update({
-                where: { id: caisseId },
-                data: {
-                    balance: {
-                        decrement: amount
-                    }
-                }
-            })
-        }
-
         return NextResponse.json(charge, { status: 201 })
     } catch (error) {
         console.error("Error creating charge:", error)
@@ -178,25 +166,6 @@ export async function PATCH(request: NextRequest) {
                 )
             }
 
-            // Check caisse balance
-            const caisse = await prisma.caisse.findUnique({
-                where: { id: caisseId }
-            })
-
-            if (!caisse) {
-                return NextResponse.json(
-                    { error: "Caisse not found" },
-                    { status: 404 }
-                )
-            }
-
-            if (caisse.balance < existingCharge.amount) {
-                return NextResponse.json(
-                    { error: `Insufficient balance in ${caisse.name}. Available: ${caisse.balance} DH, Required: ${existingCharge.amount} DH` },
-                    { status: 400 }
-                )
-            }
-
             // Update charge and create transaction
             const updatedCharge = await prisma.charge.update({
                 where: { id: targetId },
@@ -221,35 +190,15 @@ export async function PATCH(request: NextRequest) {
                 }
             })
 
-            // Deduct from caisse
-            await prisma.caisse.update({
-                where: { id: caisseId },
-                data: {
-                    balance: {
-                        decrement: existingCharge.amount
-                    }
-                }
-            })
-
             return NextResponse.json(updatedCharge)
         }
 
         // If marking as unpaid (reversal)
         if (!isPaid && existingCharge.isPaid) {
             const transaction = existingCharge.transactions[0]
-            
-            if (transaction && transaction.caisseId) {
-                // Refund to caisse
-                await prisma.caisse.update({
-                    where: { id: transaction.caisseId },
-                    data: {
-                        balance: {
-                            increment: existingCharge.amount
-                        }
-                    }
-                })
 
-                // Delete transaction
+            if (transaction && transaction.caisseId) {
+                // Delete transaction (no caisse balance update)
                 await prisma.transaction.delete({
                     where: { id: transaction.id }
                 })
@@ -306,21 +255,7 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ error: "Charge not found" }, { status: 404 })
         }
 
-        // If charge was paid, restore caisse balances
-        if (charge.isPaid) {
-            for (const transaction of charge.transactions) {
-                if (transaction.caisseId) {
-                    await prisma.caisse.update({
-                        where: { id: transaction.caisseId },
-                        data: {
-                            balance: {
-                                increment: transaction.amount
-                            }
-                        }
-                    })
-                }
-            }
-        }
+        // No caisse balance to restore (balance is not updated by charges)
 
         // Delete charge (transactions will be deleted automatically due to cascade)
         await prisma.charge.delete({

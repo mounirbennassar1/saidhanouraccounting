@@ -110,7 +110,7 @@ export default function Dashboard() {
 
     // Dynamic calculations
     const totalSpent = (stats?.totalAchats || 0) + (stats?.paidCharges || 0)
-    const soldeActuel = (stats?.totalCaisseBalance || 0) + (stats?.totalVentes || 0) - (stats?.totalAchats || 0) - (stats?.paidCharges || 0)
+    const soldeActuel = (stats?.initialCapital || 0) + (stats?.totalVentes || 0) - (stats?.totalAchats || 0) - (stats?.paidCharges || 0)
     const utilizationRate = stats?.initialCapital ? ((totalSpent / stats.initialCapital) * 100) : 0
     const chargesPaidPercentage = stats?.totalCharges ? ((stats.paidCharges / stats.totalCharges) * 100) : 0
     const liquidityRatio = stats?.unpaidCharges ? (stats.totalCaisseBalance / stats.unpaidCharges) : 0
@@ -169,8 +169,8 @@ export default function Dashboard() {
                         </h3>
                         <div className="mt-3 pt-3 border-t border-white/5">
                             <div className="flex justify-between items-center text-xs">
-                                <span className="text-slate-500">Solde Caisses</span>
-                                <span className="text-indigo-400 font-medium">+{(stats?.totalCaisseBalance || 0).toLocaleString()} DH</span>
+                                <span className="text-slate-500">Capital Initial</span>
+                                <span className="text-indigo-400 font-medium">+{(stats?.initialCapital || 0).toLocaleString()} DH</span>
                             </div>
                             <div className="flex justify-between items-center text-xs mt-1">
                                 <span className="text-slate-500">+ Ventes</span>

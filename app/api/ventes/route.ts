@@ -61,7 +61,7 @@ export async function POST(request: Request) {
             }
         })
 
-        // If caisse is provided, create transaction and update caisse balance
+        // If caisse is provided, create transaction (do not update caisse balance - tracked separately in dashboard)
         if (caisseId) {
             await prisma.transaction.create({
                 data: {
@@ -71,16 +71,6 @@ export async function POST(request: Request) {
                     caisseId,
                     venteId: vente.id,
                     userId: session.user.id
-                }
-            })
-
-            // Update caisse balance (add revenue)
-            await prisma.caisse.update({
-                where: { id: caisseId },
-                data: {
-                    balance: {
-                        increment: amount
-                    }
                 }
             })
         }
@@ -175,18 +165,10 @@ export async function DELETE(request: Request) {
             })
         }
 
-        // Reverse caisse balance changes
+        // No caisse balance to reverse (balance is not updated by ventes)
         for (const transaction of vente.transactions) {
             if (transaction.caisseId) {
-                await prisma.caisse.update({
-                    where: { id: transaction.caisseId },
-                    data: {
-                        balance: {
-                            decrement: vente.amount
-                        }
-                    }
-                })
-            }
+                // Caisse balance not affected by ventes
         }
 
         // Delete transactions first

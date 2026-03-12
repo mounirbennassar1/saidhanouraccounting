@@ -99,16 +99,6 @@ export async function POST(request: NextRequest) {
             }
         })
 
-        // Update caisse balance
-        await prisma.caisse.update({
-            where: { id: caisseId },
-            data: {
-                balance: {
-                    decrement: amount
-                }
-            }
-        })
-
         return NextResponse.json(achat, { status: 201 })
     } catch (error) {
         console.error("Error creating achat:", error)
@@ -174,19 +164,7 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ error: "Achat not found" }, { status: 404 })
         }
 
-        // Restore caisse balances
-        for (const transaction of achat.transactions) {
-            if (transaction.caisseId) {
-                await prisma.caisse.update({
-                    where: { id: transaction.caisseId },
-                    data: {
-                        balance: {
-                            increment: transaction.amount
-                        }
-                    }
-                })
-            }
-        }
+        // No caisse balance to restore (balance is not updated by achats)
 
         // Delete achat (transactions will be deleted automatically due to cascade)
         await prisma.achat.delete({
