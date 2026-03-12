@@ -165,12 +165,6 @@ export async function DELETE(request: Request) {
             })
         }
 
-        // No caisse balance to reverse (balance is not updated by ventes)
-        for (const transaction of vente.transactions) {
-            if (transaction.caisseId) {
-                // Caisse balance not affected by ventes
-        }
-
         // Delete transactions first
         await prisma.transaction.deleteMany({
             where: { venteId: id }
