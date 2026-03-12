@@ -58,27 +58,6 @@ export async function POST(request: NextRequest) {
             }
         })
 
-        // Update caisse balance based on transaction type
-        if (type === 'REVENUE') {
-            await prisma.caisse.update({
-                where: { id: caisseId },
-                data: {
-                    balance: {
-                        increment: amount
-                    }
-                }
-            })
-        } else if (type === 'ACHAT' || type === 'CHARGE') {
-            await prisma.caisse.update({
-                where: { id: caisseId },
-                data: {
-                    balance: {
-                        decrement: amount
-                    }
-                }
-            })
-        }
-
         return NextResponse.json(transaction, { status: 201 })
     } catch (error) {
         console.error("Error creating transaction:", error)

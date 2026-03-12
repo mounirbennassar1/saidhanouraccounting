@@ -110,16 +110,6 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // DEDUCT from caisse (opposite of client payment)
-      await tx.caisse.update({
-        where: { id: caisseId },
-        data: {
-          balance: {
-            decrement: amount
-          }
-        }
-      })
-
       // Create transaction record
       await tx.transaction.create({
         data: {

@@ -140,9 +140,16 @@ export async function GET() {
         
         const totalInflow = allInflowTransactions.reduce((sum: number, t: any) => sum + t.amount, 0)
 
-        // Get total ventes
-        const allVentes = await prisma.vente.findMany()
-        const totalVentes = allVentes.reduce((sum: number, v: any) => sum + v.amount, 0)
+        // Get total ventes (only paid amounts)
+        const allVentes = await prisma.vente.findMany({ include: { clientOrder: true } })
+        const totalVentes = allVentes.reduce((sum: number, v: any) => {
+            if (v.clientOrderId && v.clientOrder) {
+                // Order-linked vente: only count what's been paid
+                return sum + (v.clientOrder.paidAmount || 0)
+            }
+            // Direct vente (cash sale): count full amount
+            return sum + v.amount
+        }, 0)
         
         const cashFlow = {
             inflow: totalInflow,

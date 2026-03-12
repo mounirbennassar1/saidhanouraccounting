@@ -145,16 +145,6 @@ export async function POST(request: NextRequest) {
                 }
             })
 
-            // Add to caisse balance
-            await tx.caisse.update({
-                where: { id: caisseId },
-                data: {
-                    balance: {
-                        increment: amount
-                    }
-                }
-            })
-
             // Create transaction record for tracking
             const transactionData = {
                 type: 'REVENUE' as const,
