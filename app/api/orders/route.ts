@@ -57,9 +57,15 @@ export async function POST(request: NextRequest) {
             return sum + (item.quantity * item.unitPrice)
         }, 0)
 
-        // Generate order number
-        const orderCount = await prisma.clientOrder.count()
-        const orderNumber = `ORD-${(orderCount + 1).toString().padStart(5, '0')}`
+        // Generate order number based on the highest existing order number
+        const lastOrder = await prisma.clientOrder.findFirst({
+            orderBy: { orderNumber: 'desc' },
+            select: { orderNumber: true }
+        })
+        const lastNumber = lastOrder
+            ? parseInt(lastOrder.orderNumber.replace('ORD-', ''), 10)
+            : 0
+        const orderNumber = `ORD-${(lastNumber + 1).toString().padStart(5, '0')}`
 
         // Create order with items
         const order = await prisma.clientOrder.create({
@@ -107,9 +113,9 @@ export async function POST(request: NextRequest) {
         })
 
         return NextResponse.json(order, { status: 201 })
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error creating order:", error)
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+        return NextResponse.json({ error: error?.message || "Internal server error" }, { status: 500 })
     }
 }
 
